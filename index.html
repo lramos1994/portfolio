@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lucas Ramos — Senior Full-Stack Developer</title>
+<meta name="description" content="Senior Full-Stack Developer with 12+ years in fintech. PHP/Laravel, React, Node.js/TypeScript. Open to remote roles worldwide.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0A1A2F;
+    --bg2: #0E2540;
+    --panel: rgba(255,255,255,0.035);
+    --border: rgba(120,180,255,0.18);
+    --accent: #4DA3FF;
+    --accent-2: #2D6FD6;
+    --text: #EAF2FB;
+    --muted: #9DB4CE;
+    --green: #3CD37C;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+    color: var(--text);
+    line-height: 1.6;
+    background:
+      radial-gradient(1200px 700px at 85% -5%, rgba(56,132,255,0.16), transparent 55%),
+      radial-gradient(900px 600px at 0% 100%, rgba(45,111,214,0.10), transparent 55%),
+      linear-gradient(160deg, var(--bg) 0%, var(--bg2) 60%, #0B1E36 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+  .mono { font-family: "JetBrains Mono", monospace; }
+  a { color: inherit; text-decoration: none; }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 0 24px; }
+
+  /* Nav */
+  nav {
+    position: sticky; top: 0; z-index: 50;
+    backdrop-filter: blur(10px);
+    background: rgba(10,26,47,0.72);
+    border-bottom: 1px solid var(--border);
+  }
+  nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 62px; }
+  nav .brand { font-weight: 800; letter-spacing: 0.3px; }
+  nav .brand span { color: var(--accent); }
+  nav .links { display: flex; gap: 26px; font-size: 14px; font-weight: 500; }
+  nav .links a { color: var(--muted); transition: color .2s; }
+  nav .links a:hover { color: var(--text); }
+  @media (max-width: 640px) { nav .links { display: none; } }
+
+  /* Hero */
+  header { padding: 92px 0 64px; }
+  .eyebrow { font-size: 14px; letter-spacing: 2px; color: var(--accent); margin-bottom: 16px; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 9px;
+    font-size: 13px; font-weight: 600; color: #CFE6FF;
+    background: rgba(60,211,124,0.08);
+    border: 1px solid rgba(60,211,124,0.30);
+    padding: 7px 15px; border-radius: 22px; margin-bottom: 26px;
+  }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--green); box-shadow: 0 0 10px var(--green); }
+  h1 { font-size: clamp(38px, 7vw, 62px); font-weight: 800; line-height: 1.04; letter-spacing: -0.5px; }
+  h1 .grad { background: linear-gradient(120deg, #7DBBFF, var(--accent) 55%, var(--accent-2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .subtitle { font-size: clamp(18px, 2.6vw, 22px); color: var(--muted); margin-top: 18px; max-width: 640px; }
+  .cta { display: flex; gap: 14px; margin-top: 34px; flex-wrap: wrap; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 9px;
+    font-weight: 600; font-size: 15px; padding: 12px 22px; border-radius: 11px;
+    border: 1px solid var(--border); transition: transform .15s, background .2s, border-color .2s;
+  }
+  .btn:hover { transform: translateY(-2px); }
+  .btn.primary { background: linear-gradient(120deg, var(--accent), var(--accent-2)); border-color: transparent; color: #04101F; box-shadow: 0 8px 26px rgba(77,163,255,0.28); }
+  .btn.ghost { color: var(--text); }
+  .btn.ghost:hover { border-color: var(--accent); background: rgba(77,163,255,0.08); }
+
+  /* Stats */
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 56px; }
+  @media (max-width: 720px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+  .stat { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
+  .stat .num { font-size: 30px; font-weight: 800; color: #fff; }
+  .stat .num .u { color: var(--accent); }
+  .stat .lbl { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+  /* Sections */
+  section { padding: 62px 0; }
+  .sec-label { font-size: 13px; letter-spacing: 2px; color: var(--accent); margin-bottom: 10px; }
+  h2 { font-size: clamp(26px, 4vw, 34px); font-weight: 800; letter-spacing: -0.3px; margin-bottom: 26px; }
+  .lead { color: var(--muted); font-size: 17px; max-width: 720px; }
+  .lead b { color: var(--text); }
+
+  /* Skills */
+  .skills { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  @media (max-width: 720px) { .skills { grid-template-columns: 1fr; } }
+  .skill-card { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 20px 22px; }
+  .skill-card h3 { font-size: 14px; color: var(--accent); margin-bottom: 12px; font-family: "JetBrains Mono", monospace; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { font-size: 13px; font-weight: 600; color: #DCEAFB; background: rgba(77,163,255,0.10); border: 1px solid rgba(120,180,255,0.25); padding: 5px 12px; border-radius: 18px; }
+
+  /* Case studies */
+  .cases { display: flex; flex-direction: column; gap: 18px; }
+  .case { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 26px; transition: border-color .2s, transform .15s; }
+  .case:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .case .top { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+  .case h3 { font-size: 20px; font-weight: 700; }
+  .case .co { font-size: 13px; color: var(--accent); font-family: "JetBrains Mono", monospace; white-space: nowrap; }
+  .case p { color: var(--muted); margin: 12px 0 14px; }
+  .case .tags { display: flex; gap: 8px; flex-wrap: wrap; }
+  .case .tags span { font-size: 12px; color: var(--muted); background: rgba(255,255,255,0.04); border: 1px solid var(--border); padding: 3px 10px; border-radius: 14px; }
+
+  /* Contact */
+  .contact { text-align: center; background: var(--panel); border: 1px solid var(--border); border-radius: 20px; padding: 52px 26px; }
+  .contact h2 { margin-bottom: 12px; }
+  .contact p { color: var(--muted); max-width: 520px; margin: 0 auto 28px; }
+
+  footer { text-align: center; color: var(--muted); font-size: 13px; padding: 40px 0 56px; }
+</style>
+</head>
+<body>
+
+  <nav>
+    <div class="wrap">
+      <div class="brand">Lucas<span>.</span>Ramos</div>
+      <div class="links">
+        <a href="#about">About</a>
+        <a href="#stack">Stack</a>
+        <a href="#work">Work</a>
+        <a href="#contact">Contact</a>
+      </div>
+    </div>
+  </nav>
+
+  <header>
+    <div class="wrap">
+      <div class="eyebrow mono">// senior full-stack engineer · fintech</div>
+      <div class="pill"><span class="dot"></span> Open to remote opportunities worldwide</div>
+      <h1>Lucas Ramos<br><span class="grad">Senior Full-Stack Developer</span></h1>
+      <p class="subtitle">12+ years building end-to-end web applications, with deep experience in
+        fintech at <b style="color:#EAF2FB">XP Inc.</b> and <b style="color:#EAF2FB">Grupo Primo</b>.
+        I ship quality, secure, scalable software — and I care about performance.</p>
+      <div class="cta">
+        <a class="btn primary" href="mailto:lucas_ramos1994@hotmail.com">✉ Get in touch</a>
+        <a class="btn ghost" href="https://www.linkedin.com/in/lucasramos-48b03671" target="_blank" rel="noopener">in · LinkedIn</a>
+        <a class="btn ghost" href="https://github.com/lramos1994" target="_blank" rel="noopener">⌂ GitHub</a>
+      </div>
+
+      <div class="stats">
+        <div class="stat"><div class="num">12<span class="u">+</span></div><div class="lbl">years of experience</div></div>
+        <div class="stat"><div class="num">30<span class="u">k</span></div><div class="lbl">subscribers migrated (M&amp;A)</div></div>
+        <div class="stat"><div class="num">$200M<span class="u">+</span></div><div class="lbl">assets under custody served</div></div>
+        <div class="stat"><div class="num">90<span class="u">+</span></div><div class="lbl">PageSpeed bar held</div></div>
+      </div>
+    </div>
+  </header>
+
+  <section id="about">
+    <div class="wrap">
+      <div class="sec-label mono">// about</div>
+      <h2>Full-stack, with a fintech backbone</h2>
+      <p class="lead">I specialize in <b>PHP/Laravel</b> and the <b>JavaScript/TypeScript</b> ecosystem
+        (React, Node.js), with Python in the mix. Across XP Inc. and Grupo Primo I led back-end and front-end
+        for investment products, ran <b>post-acquisition (M&amp;A) system integrations</b>, and built
+        <b>portfolio-risk analytics</b>. Today I deliver high-performance web at scale for large clients —
+        holding a mandatory 90+ Core Web Vitals score on every project. I'm fully set up for
+        <b>remote collaboration across time zones</b> (based in Brazil, UTC−3).</p>
+    </div>
+  </section>
+
+  <section id="stack">
+    <div class="wrap">
+      <div class="sec-label mono">// stack</div>
+      <h2>Technical toolkit</h2>
+      <div class="skills">
+        <div class="skill-card">
+          <h3>Languages</h3>
+          <div class="chips"><span class="chip">PHP</span><span class="chip">JavaScript</span><span class="chip">TypeScript</span><span class="chip">Python</span><span class="chip">SQL</span></div>
+        </div>
+        <div class="skill-card">
+          <h3>Back-end</h3>
+          <div class="chips"><span class="chip">Laravel</span><span class="chip">Node.js</span><span class="chip">Zend</span><span class="chip">REST APIs</span><span class="chip">SOAP</span></div>
+        </div>
+        <div class="skill-card">
+          <h3>Front-end</h3>
+          <div class="chips"><span class="chip">React</span><span class="chip">Vue.js</span><span class="chip">HTML5</span><span class="chip">CSS3</span></div>
+        </div>
+        <div class="skill-card">
+          <h3>Cloud &amp; DevOps</h3>
+          <div class="chips"><span class="chip">AWS</span><span class="chip">Azure</span><span class="chip">DigitalOcean</span><span class="chip">CI/CD</span><span class="chip">Git</span></div>
+        </div>
+        <div class="skill-card">
+          <h3>Databases</h3>
+          <div class="chips"><span class="chip">MySQL</span><span class="chip">PostgreSQL</span></div>
+        </div>
+        <div class="skill-card">
+          <h3>Testing &amp; Practices</h3>
+          <div class="chips"><span class="chip">Playwright (E2E)</span><span class="chip">Unit testing</span><span class="chip">Agile/Scrum</span><span class="chip">Tech leadership</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="work">
+    <div class="wrap">
+      <div class="sec-label mono">// selected work</div>
+      <h2>Case studies</h2>
+      <div class="cases">
+        <div class="case">
+          <div class="top"><h3>Portfolio-risk engine</h3><div class="co">Portfel · Grupo Primo</div></div>
+          <p>Built the service that measures client investment portfolios and automatically flags assets
+            outside each investor's risk profile — for an advisory firm with <b style="color:#EAF2FB">US$200M+ in assets under custody</b>.</p>
+          <div class="tags"><span>PHP</span><span>Risk analytics</span><span>APIs</span><span>Fintech</span></div>
+        </div>
+        <div class="case">
+          <div class="top"><h3>Post-M&amp;A platform migration</h3><div class="co">Spiti → Finclass</div></div>
+          <p>Owned the full migration and merge of <b style="color:#EAF2FB">~30,000 subscribers</b> and all
+            content into the Finclass platform after the Grupo Primo acquisition — a complex post-M&amp;A integration.</p>
+          <div class="tags"><span>PHP</span><span>Laravel</span><span>Data migration</span><span>M&amp;A</span></div>
+        </div>
+        <div class="case">
+          <div class="top"><h3>Payments re-platform</h3><div class="co">XP Inc. · Spiti</div></div>
+          <p>Led the migration of the subscription &amp; payments system from <b style="color:#EAF2FB">WordPress to a new Python
+            application</b>, keeping WordPress purely as a content CMS — a major boost to robustness and scalability.</p>
+          <div class="tags"><span>Python</span><span>Payments</span><span>WordPress</span><span>Architecture</span></div>
+        </div>
+        <div class="case">
+          <div class="top"><h3>Telegram automation bot</h3><div class="co">Grupo Primo</div></div>
+          <p>Developed a bot that synced Telegram channel access with subscription status, automatically
+            removing cancelled users and streamlining communication with the active base.</p>
+          <div class="tags"><span>PHP</span><span>Bot API</span><span>Automation</span></div>
+        </div>
+        <div class="case">
+          <div class="top"><h3>High-performance web at scale</h3><div class="co">Studio Visual</div></div>
+          <p>Deliver multiple concurrent projects for large clients (Gazeta Esportiva, Cásper Líbero, Dimensa,
+            Midiamax), enforcing a <b style="color:#EAF2FB">90+ PageSpeed / Core Web Vitals</b> bar on every one.</p>
+          <div class="tags"><span>PHP</span><span>React</span><span>Performance</span><span>SEO</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact">
+    <div class="wrap">
+      <div class="contact">
+        <h2>Let's build something</h2>
+        <p>Open to Senior Full-Stack / Tech Lead remote opportunities. Based in Brazil (UTC−3),
+          available across time zones.</p>
+        <div class="cta" style="justify-content:center">
+          <a class="btn primary" href="mailto:lucas_ramos1994@hotmail.com">✉ lucas_ramos1994@hotmail.com</a>
+          <a class="btn ghost" href="https://www.linkedin.com/in/lucasramos-48b03671" target="_blank" rel="noopener">LinkedIn</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>© 2026 Lucas Ramos · Senior Full-Stack Developer · Built from scratch</footer>
+
+</body>
+</html>
