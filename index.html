@@ -7,7 +7,7 @@
   <meta name="description" content="Full-stack developer, twelve years on payment, investment, and risk systems. PHP/Laravel, TypeScript, Python. Also SolarSys, a deterministic SVG generator.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Lora:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=IBM+Plex+Mono:wght@400&family=Source+Serif+4:opsz,wght@8..60,400&display=swap" rel="stylesheet">
   <style>
     :root {
       --paper: #f9f9f7;
@@ -33,8 +33,9 @@
       margin: 0;
       background: var(--paper);
       color: var(--ink);
-      font-family: "Lora", Georgia, serif;
-      line-height: 1.72;
+      font-family: "Source Serif 4", Georgia, serif;
+      font-size: 1.05rem;
+      line-height: 1.68;
       -webkit-font-smoothing: antialiased;
       text-rendering: optimizeLegibility;
     }
@@ -76,14 +77,18 @@
 
     h1,
     h2 {
+      font-family: "Fraunces", Georgia, serif;
       font-weight: 600;
+      font-variation-settings: "opsz" 144, "SOFT" 0, "WONK" 0;
       letter-spacing: -0.02em;
       line-height: 1.15;
     }
 
     h1 {
-      font-size: clamp(2.55rem, 5vw, 4.3rem);
-      max-width: 13ch;
+      font-size: clamp(3.4rem, 8vw, 6.6rem);
+      line-height: 0.94;
+      letter-spacing: -0.045em;
+      max-width: 10ch;
     }
 
     h2 {
@@ -107,13 +112,13 @@
     .project-links,
     footer {
       font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
-      font-size: 0.88rem;
+      font-size: 0.78rem;
+      letter-spacing: 0.11em;
       line-height: 1.6;
     }
 
     .section-label {
       color: var(--accent);
-      letter-spacing: 0.08em;
       text-transform: uppercase;
       margin-bottom: 1rem;
     }
@@ -131,6 +136,7 @@
 
     .section-copy {
       color: var(--ink);
+      margin-top: 1.6rem;
     }
 
     .section-copy p {
@@ -224,7 +230,7 @@
 <body>
   <main>
     <section aria-labelledby="intro-title">
-      <p class="section-label">Section 1</p>
+      <p class="section-label">01 / Financial systems — 12 years</p>
       <h1 id="intro-title">Lucas Ramos</h1>
       <p class="lede">I have spent more than a decade building software where a wrong number costs someone money.</p>
       <div class="section-copy">
@@ -236,7 +242,7 @@
     </section>
 
     <section aria-labelledby="solarsys-title">
-      <p class="section-label">Section 2</p>
+      <p class="section-label">02 / Generative SVG — deterministic</p>
       <h2 id="solarsys-title">SolarSys</h2>
       <div class="section-copy">
         <p>SolarSys is a TypeScript and Vite app that generates animated solar systems as self-contained SVG files, entirely in the browser, with no backend. The generator is deterministic, so the same seed always produces the same universe, and that is what makes it testable: Vitest covers the generator, Playwright covers the animation.</p>
