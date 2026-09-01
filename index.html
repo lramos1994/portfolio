@@ -167,22 +167,40 @@
     /* bottom-right of the paper band: it anchors the eye at the end of
        the intro without competing with the name.
 
-       The bottom offset is not cosmetic. Both this figure and the dark
-       band's are anchored to the right edge, so at bottom:0 their two
-       vertices land ~15px apart across the seam and the pair reads as one
-       mirrored bowtie — an accident, not a composition. Lifting this one
-       clear of the seam restores two separate figures. The corner it is
-       anchored to is unchanged. Below 641px only this ornament renders, so
-       there is no pair to fuse and it sits flush instead — where the extra
-       lift would push it onto the mono stack line. */
+       The whole composition switches at 736px, and that number is not a
+       device guess: the reading column is min(100%, 46rem), so below 736px
+       it fills the viewport edge to edge and there is NO gutter — the
+       ornaments would have to sit on top of the measure. At 736px and above
+       the column stops growing and real side gutters open.
+
+       An earlier revision switched at 641px instead, and the two properties
+       collided in the gap: between 641 and 724px the lifted figure painted
+       over the mono stack line (measured: 491 ink px at 641, decaying to 9
+       at 720). The lift itself cannot simply be dropped, because it is what
+       keeps this vertex and the dark band's from landing ~12px apart across
+       the seam and reading as one mirrored bowtie. Both are the same knob
+       on the same axis: the fix is to switch the composition where the
+       LAYOUT changes, not at a round number. Verified over every integer
+       width from 320 to 1920. */
     .ornament-intro {
       right: 0;
       bottom: 0;
-      width: 220px;
+      width: 150px;
     }
 
-    @media (min-width: 641px) {
+    /* below the gutter threshold only the intro renders, flush to the
+       corner: the seam and dark-band figures have nowhere to go but on top
+       of the measure, and the lift would push this one onto the stack line */
+    @media (max-width: 735px) {
+      .ornament-seam,
+      .ornament-dark {
+        display: none;
+      }
+    }
+
+    @media (min-width: 736px) {
       .ornament-intro {
+        width: 220px;
         bottom: 4.5rem;
       }
     }
@@ -398,18 +416,6 @@
       footer nav {
         flex-direction: column;
         gap: 0.55rem;
-      }
-
-      /* mobile keeps only the intro ornament: at this width the seam and
-         the dark-band envelopes stop reading as drawings and start
-         reading as noise crowding the measure */
-      .ornament-seam,
-      .ornament-dark {
-        display: none;
-      }
-
-      .ornament-intro {
-        width: 150px;
       }
     }
 
