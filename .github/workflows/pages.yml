@@ -1,0 +1,39 @@
+name: Deploy static site to GitHub Pages
+
+# Publicacao MANUAL apenas. Nao existe gatilho automatico: merge em main
+# NAO publica o site. Para publicar, rodar este workflow via
+# "Run workflow" (workflow_dispatch) na aba Actions.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Uma publicacao por vez; nao cancela uma publicacao em andamento.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
