@@ -19,6 +19,15 @@
       --frame-line: #202a3a;
       --focus: #8b4a2f;
       --content-width: min(100%, 46rem);
+
+      /* dark band: the project section is a scene the author projects,
+         not an image pasted onto the paper */
+      --band: #080d1a;
+      --band-ink: #e8e4da;
+      --band-muted: #9a958a;
+      --band-accent: #a8bfe0;
+      --band-rule: #26303f;
+      --band-focus: #d98a5f;
     }
 
     * {
@@ -57,14 +66,57 @@
     }
 
     main {
-      width: var(--content-width);
-      margin: 0 auto;
-      padding: 4.5rem 1.5rem 3rem;
+      width: 100%;
+      margin: 0;
+      padding: 0;
     }
 
-    section + section,
-    footer {
-      margin-top: 4.5rem;
+    /* A band spans the full viewport width; the reading column inside it
+       keeps the same measure the paper sections use, so text never moves. */
+    .column {
+      width: var(--content-width);
+      margin: 0 auto;
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+    }
+
+    .band-paper {
+      padding-top: 4.5rem;
+      padding-bottom: 4.5rem;
+    }
+
+    .band-dark {
+      position: relative;
+      isolation: isolate;
+      background: var(--band);
+      color: var(--band-ink);
+      padding-top: 4.5rem;
+      padding-bottom: 4.5rem;
+      /* the edge between paper and band IS the transition; the hairline
+         keeps it from reading as a raw crop at the top seam */
+      border-top: 1px solid var(--band-rule);
+    }
+
+    .band-dark .section-label,
+    .band-dark .project-links {
+      color: var(--band-accent);
+    }
+
+    .band-dark .section-copy,
+    .band-dark h2 {
+      color: var(--band-ink);
+    }
+
+    .band-dark .figure-caption {
+      color: var(--band-muted);
+    }
+
+    .band-dark a:hover {
+      color: #ffffff;
+    }
+
+    .band-dark a:focus-visible {
+      outline-color: var(--band-focus);
     }
 
     h1,
@@ -150,12 +202,24 @@
       background: #f3f1ec;
     }
 
+    /* inside the dark band the paper mat would re-create the pasted-image
+       look; the band itself is the mat, so the frame dissolves */
+    .band-dark .project-frame {
+      border: 0;
+      padding: 0;
+      background: transparent;
+    }
+
     .project-stage {
       margin: 0;
       border: 1px solid var(--frame-line);
       background: var(--frame);
       aspect-ratio: 16 / 9;
       overflow: hidden;
+    }
+
+    .band-dark .project-stage {
+      border-color: var(--band-rule);
     }
 
     .project-stage object {
@@ -182,7 +246,7 @@
       width: var(--content-width);
       margin-left: auto;
       margin-right: auto;
-      padding: 0 1.5rem 3rem;
+      padding: 4.5rem 1.5rem 3rem;
       color: var(--muted);
     }
 
@@ -193,14 +257,19 @@
     }
 
     @media (max-width: 640px) {
-      main {
+      .band-paper {
         padding-top: 3.4rem;
-        padding-bottom: 2.25rem;
+        padding-bottom: 3.5rem;
       }
 
-      section + section,
+      .band-dark {
+        padding-top: 3.5rem;
+        padding-bottom: 3.5rem;
+      }
+
       footer {
-        margin-top: 3.5rem;
+        padding-top: 3.5rem;
+        padding-bottom: 2.25rem;
       }
 
       .project-frame {
@@ -229,46 +298,50 @@
 </head>
 <body>
   <main>
-    <section aria-labelledby="intro-title">
-      <p class="section-label">01 / Financial systems — 12 years</p>
-      <h1 id="intro-title">Lucas Ramos</h1>
-      <p class="lede">I have spent more than a decade building software where a wrong number costs someone money.</p>
-      <div class="section-copy">
-        <p>Most of that work has been in finance: investment platforms, payment flows, and the risk checks sitting behind them.</p>
-        <p>PHP and Laravel are my backbone, and I reach for TypeScript with React or Vue when the interface has to carry real state. I use Python, usually Django or FastAPI, for the parts that lean toward data.</p>
-        <p>I optimize for code that still makes sense two years later, when I am the one reading it back.</p>
+    <section class="band-paper" aria-labelledby="intro-title">
+      <div class="column">
+        <p class="section-label">01 / Financial systems — 12 years</p>
+        <h1 id="intro-title">Lucas Ramos</h1>
+        <p class="lede">I have spent more than a decade building software where a wrong number costs someone money.</p>
+        <div class="section-copy">
+          <p>Most of that work has been in finance: investment platforms, payment flows, and the risk checks sitting behind them.</p>
+          <p>PHP and Laravel are my backbone, and I reach for TypeScript with React or Vue when the interface has to carry real state. I use Python, usually Django or FastAPI, for the parts that lean toward data.</p>
+          <p>I optimize for code that still makes sense two years later, when I am the one reading it back.</p>
+        </div>
+        <p class="stack-line">PHP/Laravel · TypeScript/React/Vue · Python/Django/FastAPI</p>
       </div>
-      <p class="stack-line">PHP/Laravel · TypeScript/React/Vue · Python/Django/FastAPI</p>
     </section>
 
-    <section aria-labelledby="solarsys-title">
-      <p class="section-label">02 / Generative SVG — deterministic</p>
-      <h2 id="solarsys-title">SolarSys</h2>
-      <div class="section-copy">
-        <p>SolarSys is a TypeScript and Vite app that generates animated solar systems as self-contained SVG files, entirely in the browser, with no backend. The generator is deterministic, so the same seed always produces the same universe, and that is what makes it testable: Vitest covers the generator, Playwright covers the animation.</p>
-      </div>
+    <section class="band-dark" aria-labelledby="solarsys-title">
+      <div class="column">
+        <p class="section-label">02 / Generative SVG — deterministic</p>
+        <h2 id="solarsys-title">SolarSys</h2>
+        <div class="section-copy">
+          <p>SolarSys is a TypeScript and Vite app that generates animated solar systems as self-contained SVG files, entirely in the browser, with no backend. The generator is deterministic, so the same seed always produces the same universe, and that is what makes it testable: Vitest covers the generator, Playwright covers the animation.</p>
+        </div>
 
-      <div class="project-frame">
-        <figure>
-          <div class="project-stage">
-            <object
-              id="solarsys-scene"
-              type="image/svg+xml"
-              data="assets/solarsys-scene.svg"
-              tabindex="-1"
-              role="img"
-              aria-label="Animated generated scene: a star with orbiting planets, one ringed and one with a moon, an asteroid belt, and comets crossing the field."
-            >
-              <img src="assets/solarsys-scene.svg" alt="Animated generated scene: a star with orbiting planets, one ringed and one with a moon, an asteroid belt, and comets crossing the field.">
-            </object>
-          </div>
-          <figcaption class="figure-caption">Fig 1: Generated by the SolarSys engine. Rendered via SMIL animateMotion. Seed: 20260903.</figcaption>
-        </figure>
+        <div class="project-frame">
+          <figure>
+            <div class="project-stage">
+              <object
+                id="solarsys-scene"
+                type="image/svg+xml"
+                data="assets/solarsys-scene.svg"
+                tabindex="-1"
+                role="img"
+                aria-label="Animated generated scene: a star with orbiting planets, one ringed and one with a moon, an asteroid belt, and comets crossing the field."
+              >
+                <img src="assets/solarsys-scene.svg" alt="Animated generated scene: a star with orbiting planets, one ringed and one with a moon, an asteroid belt, and comets crossing the field.">
+              </object>
+            </div>
+            <figcaption class="figure-caption">Fig 1: Generated by the SolarSys engine. Rendered via SMIL animateMotion. Seed: 20260903.</figcaption>
+          </figure>
 
-        <p class="project-links">
-          <a href="https://lramos1994.github.io/solarsys/" target="_blank" rel="noopener">Open SolarSys →</a>
-          <a href="https://github.com/lramos1994/solarsys" target="_blank" rel="noopener">Source: github.com/lramos1994/solarsys</a>
-        </p>
+          <p class="project-links">
+            <a href="https://lramos1994.github.io/solarsys/" target="_blank" rel="noopener">Open SolarSys →</a>
+            <a href="https://github.com/lramos1994/solarsys" target="_blank" rel="noopener">Source: github.com/lramos1994/solarsys</a>
+          </p>
+        </div>
       </div>
     </section>
   </main>
