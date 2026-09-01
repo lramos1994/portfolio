@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 230" width="160" height="230" fill="none" role="presentation" aria-hidden="true" focusable="false" shape-rendering="geometricPrecision" data-envelope="env-transition" data-corner="tl" data-n="24">
+  <title>Vertical line envelope ornament, section transition</title>
+  <g fill="none" stroke-linecap="butt" vector-effect="non-scaling-stroke">
+    <g data-layer="back" opacity="0.35" transform="translate(5,7)">
+      <line vector-effect="non-scaling-stroke" x1="12" y1="12" x2="12" y2="218" stroke="#17273c" style="stroke:oklch(0.27 0.045 255)" stroke-width="0.55" stroke-opacity="0.28"/>
+      <line vector-effect="non-scaling-stroke" x1="29" y1="12" x2="12" y2="192.25" stroke="#0c3445" style="stroke:oklch(0.307 0.052 229.125)" stroke-width="0.55" stroke-opacity="0.364"/>
+      <line vector-effect="non-scaling-stroke" x1="46" y1="12" x2="12" y2="166.5" stroke="#004247" style="stroke:oklch(0.345 0.059 203.25)" stroke-width="0.55" stroke-opacity="0.448"/>
+      <line vector-effect="non-scaling-stroke" x1="63" y1="12" x2="12" y2="140.75" stroke="#0c4e43" style="stroke:oklch(0.383 0.066 177.375)" stroke-width="0.55" stroke-opacity="0.531"/>
+      <line vector-effect="non-scaling-stroke" x1="80" y1="12" x2="12" y2="115" stroke="#2c5839" style="stroke:oklch(0.42 0.073 151.5)" stroke-width="0.55" stroke-opacity="0.615"/>
+      <line vector-effect="non-scaling-stroke" x1="97" y1="12" x2="12" y2="89.25" stroke="#4d5f2b" style="stroke:oklch(0.457 0.079 125.625)" stroke-width="0.55" stroke-opacity="0.699"/>
+      <line vector-effect="non-scaling-stroke" x1="114" y1="12" x2="12" y2="63.5" stroke="#6e6320" style="stroke:oklch(0.495 0.086 99.75)" stroke-width="0.55" stroke-opacity="0.782"/>
+      <line vector-effect="non-scaling-stroke" x1="131" y1="12" x2="12" y2="37.75" stroke="#8c6326" style="stroke:oklch(0.532 0.093 73.875)" stroke-width="0.895" stroke-opacity="0.866"/>
+      <line vector-effect="non-scaling-stroke" x1="148" y1="12" x2="12" y2="12" stroke="#a76440" style="stroke:oklch(0.57 0.1 48)" stroke-width="1.35" stroke-opacity="0.95"/>
+    </g>
+    <g data-layer="front">
+    <line vector-effect="non-scaling-stroke" x1="12" y1="12" x2="12" y2="218" stroke="#17273c" style="stroke:oklch(0.27 0.045 255)" stroke-width="0.55" stroke-opacity="0.28"/>
+    <line vector-effect="non-scaling-stroke" x1="17.667" y1="12" x2="12" y2="209.417" stroke="#142b3f" style="stroke:oklch(0.283 0.047 246.375)" stroke-width="0.55" stroke-opacity="0.308"/>
+    <line vector-effect="non-scaling-stroke" x1="23.333" y1="12" x2="12" y2="200.833" stroke="#113042" style="stroke:oklch(0.295 0.05 237.75)" stroke-width="0.55" stroke-opacity="0.336"/>
+    <line vector-effect="non-scaling-stroke" x1="29" y1="12" x2="12" y2="192.25" stroke="#0c3445" style="stroke:oklch(0.307 0.052 229.125)" stroke-width="0.55" stroke-opacity="0.364"/>
+    <line vector-effect="non-scaling-stroke" x1="34.667" y1="12" x2="12" y2="183.667" stroke="#073946" style="stroke:oklch(0.32 0.054 220.5)" stroke-width="0.55" stroke-opacity="0.392"/>
+    <line vector-effect="non-scaling-stroke" x1="40.333" y1="12" x2="12" y2="175.083" stroke="#033d47" style="stroke:oklch(0.333 0.056 211.875)" stroke-width="0.55" stroke-opacity="0.42"/>
+    <line vector-effect="non-scaling-stroke" x1="46" y1="12" x2="12" y2="166.5" stroke="#004247" style="stroke:oklch(0.345 0.059 203.25)" stroke-width="0.55" stroke-opacity="0.448"/>
+    <line vector-effect="non-scaling-stroke" x1="51.667" y1="12" x2="12" y2="157.917" stroke="#004646" style="stroke:oklch(0.357 0.061 194.625)" stroke-width="0.55" stroke-opacity="0.475"/>
+    <line vector-effect="non-scaling-stroke" x1="57.333" y1="12" x2="12" y2="149.333" stroke="#044a45" style="stroke:oklch(0.37 0.063 186)" stroke-width="0.55" stroke-opacity="0.503"/>
+    <line vector-effect="non-scaling-stroke" x1="63" y1="12" x2="12" y2="140.75" stroke="#0c4e43" style="stroke:oklch(0.383 0.066 177.375)" stroke-width="0.55" stroke-opacity="0.531"/>
+    <line vector-effect="non-scaling-stroke" x1="68.667" y1="12" x2="12" y2="132.167" stroke="#175240" style="stroke:oklch(0.395 0.068 168.75)" stroke-width="0.55" stroke-opacity="0.559"/>
+    <line vector-effect="non-scaling-stroke" x1="74.333" y1="12" x2="12" y2="123.583" stroke="#21553c" style="stroke:oklch(0.407 0.07 160.125)" stroke-width="0.55" stroke-opacity="0.587"/>
+    <line vector-effect="non-scaling-stroke" x1="80" y1="12" x2="12" y2="115" stroke="#2c5839" style="stroke:oklch(0.42 0.073 151.5)" stroke-width="0.55" stroke-opacity="0.615"/>
+    <line vector-effect="non-scaling-stroke" x1="85.667" y1="12" x2="12" y2="106.417" stroke="#375b34" style="stroke:oklch(0.432 0.075 142.875)" stroke-width="0.55" stroke-opacity="0.643"/>
+    <line vector-effect="non-scaling-stroke" x1="91.333" y1="12" x2="12" y2="97.833" stroke="#425d30" style="stroke:oklch(0.445 0.077 134.25)" stroke-width="0.55" stroke-opacity="0.671"/>
+    <line vector-effect="non-scaling-stroke" x1="97" y1="12" x2="12" y2="89.25" stroke="#4d5f2b" style="stroke:oklch(0.457 0.079 125.625)" stroke-width="0.55" stroke-opacity="0.699"/>
+    <line vector-effect="non-scaling-stroke" x1="102.667" y1="12" x2="12" y2="80.667" stroke="#586127" style="stroke:oklch(0.47 0.082 117)" stroke-width="0.55" stroke-opacity="0.727"/>
+    <line vector-effect="non-scaling-stroke" x1="108.333" y1="12" x2="12" y2="72.083" stroke="#636223" style="stroke:oklch(0.482 0.084 108.375)" stroke-width="0.55" stroke-opacity="0.755"/>
+    <line vector-effect="non-scaling-stroke" x1="114" y1="12" x2="12" y2="63.5" stroke="#6e6320" style="stroke:oklch(0.495 0.086 99.75)" stroke-width="0.55" stroke-opacity="0.782"/>
+    <line vector-effect="non-scaling-stroke" x1="119.667" y1="12" x2="12" y2="54.917" stroke="#786320" style="stroke:oklch(0.507 0.089 91.125)" stroke-width="0.592" stroke-opacity="0.81"/>
+    <line vector-effect="non-scaling-stroke" x1="125.333" y1="12" x2="12" y2="46.333" stroke="#836322" style="stroke:oklch(0.52 0.091 82.5)" stroke-width="0.744" stroke-opacity="0.838"/>
+    <line vector-effect="non-scaling-stroke" x1="131" y1="12" x2="12" y2="37.75" stroke="#8c6326" style="stroke:oklch(0.532 0.093 73.875)" stroke-width="0.895" stroke-opacity="0.866"/>
+    <line vector-effect="non-scaling-stroke" x1="136.667" y1="12" x2="12" y2="29.167" stroke="#96642d" style="stroke:oklch(0.545 0.095 65.25)" stroke-width="1.047" stroke-opacity="0.894"/>
+    <line vector-effect="non-scaling-stroke" x1="142.333" y1="12" x2="12" y2="20.583" stroke="#9f6436" style="stroke:oklch(0.557 0.098 56.625)" stroke-width="1.198" stroke-opacity="0.922"/>
+    <line vector-effect="non-scaling-stroke" x1="148" y1="12" x2="12" y2="12" stroke="#a76440" style="stroke:oklch(0.57 0.1 48)" stroke-width="1.35" stroke-opacity="0.95"/>
+    </g>
+  </g>
+</svg>
