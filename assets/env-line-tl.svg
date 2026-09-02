@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 601.571 499.571" width="601.571" height="499.571" fill="none" role="presentation" aria-hidden="true" focusable="false" shape-rendering="geometricPrecision" color="#8b4a2f" data-envelope="env-line-tl" data-corner="tl">
+  <title>Line envelope ornament, tl corner</title>
+  <style>
+    /* The reveal lives HERE, inside the asset, on purpose.
+
+       This file is loaded through &lt;object&gt;, which makes it its own
+       document: the host page's CSS does not cascade in, and over
+       file:// the host page's JS cannot reach in either (opaque origin
+       =&gt; contentDocument is null). A script-driven reveal on the page
+       side silently did nothing whenever the page was opened straight
+       from disk. Owning the animation removes that dependency.
+
+       It runs on document load, and the page turns that into a scroll
+       trigger by leaving `data` unset until the corner is in view, so
+       "loaded" and "seen" are the same moment.
+
+       pathLength="1" is what lets the dash be written in CSS at all: it
+       normalizes every line to length 1 regardless of its real geometry,
+       so ONE dasharray is correct for all of them at any rendered size.
+       It only works because these lines carry no vector-effect:
+       non-scaling-stroke, which would push the dash back into screen
+       pixels and break the normalization. */
+    line {
+      stroke-dasharray: 1;
+      stroke-dashoffset: 1;
+      animation: draw 900ms cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+    }
+
+    @keyframes draw {
+      to { stroke-dashoffset: 0; }
+    }
+
+    /* One shot, no loop, and nothing at all if less motion was asked
+       for: the resting state of this drawing is a FINISHED drawing. */
+    @media (prefers-reduced-motion: reduce) {
+      line {
+        animation: none;
+        stroke-dashoffset: 0;
+      }
+    }
+  </style>
+  <g fill="none" stroke-linecap="butt">
+    <g data-layer="back" opacity="0.35">
+      <line pathLength="1" style="animation-delay:0ms" x1="5.785" y1="7.785" x2="5.785" y2="505.785" stroke="currentColor" stroke-width="0.602" stroke-opacity="0.28"/>
+      <line pathLength="1" style="animation-delay:12ms" x1="58.726" y1="7.785" x2="5.785" y2="461.844" stroke="currentColor" stroke-width="0.602" stroke-opacity="0.339"/>
+      <line pathLength="1" style="animation-delay:24ms" x1="111.667" y1="7.785" x2="5.785" y2="417.903" stroke="currentColor" stroke-width="0.602" stroke-opacity="0.398"/>
+      <line pathLength="1" style="animation-delay:36ms" x1="164.609" y1="7.785" x2="5.785" y2="373.961" stroke="currentColor" stroke-width="0.602" stroke-opacity="0.457"/>
+      <line pathLength="1" style="animation-delay:48ms" x1="217.55" y1="7.785" x2="5.785" y2="330.02" stroke="currentColor" stroke-width="0.602" stroke-opacity="0.516"/>
+      <line pathLength="1" style="animation-delay:60ms" x1="270.491" y1="7.785" x2="5.785" y2="286.079" stroke="currentColor" stroke-width="0.602" stroke-opacity="0.576"/>
+      <line pathLength="1" style="animation-delay:72ms" x1="323.432" y1="7.785" x2="5.785" y2="242.138" stroke="currentColor" stroke-width="0.602" stroke-opacity="0.635"/>
+      <line pathLength="1" style="animation-delay:84ms" x1="376.373" y1="7.785" x2="5.785" y2="198.197" stroke="currentColor" stroke-width="0.602" stroke-opacity="0.694"/>
+      <line pathLength="1" style="animation-delay:96ms" x1="429.314" y1="7.785" x2="5.785" y2="154.256" stroke="currentColor" stroke-width="0.602" stroke-opacity="0.753"/>
+      <line pathLength="1" style="animation-delay:108ms" x1="482.256" y1="7.785" x2="5.785" y2="110.314" stroke="currentColor" stroke-width="0.657" stroke-opacity="0.812"/>
+      <line pathLength="1" style="animation-delay:120ms" x1="535.197" y1="7.785" x2="5.785" y2="66.373" stroke="currentColor" stroke-width="1.008" stroke-opacity="0.871"/>
+      <line pathLength="1" style="animation-delay:132ms" x1="588.138" y1="7.785" x2="5.785" y2="22.432" stroke="currentColor" stroke-width="1.36" stroke-opacity="0.93"/>
+    </g>
+    <g data-layer="front">
+      <line pathLength="1" style="animation-delay:0ms" x1="0.785" y1="0.785" x2="0.785" y2="498.785" stroke="currentColor" stroke-width="0.602" stroke-opacity="0.28"/>
+      <line pathLength="1" style="animation-delay:12ms" x1="18.432" y1="0.785" x2="0.785" y2="484.138" stroke="currentColor" stroke-width="0.602" stroke-opacity="0.3"/>
+      <line pathLength="1" style="animation-delay:24ms" x1="36.079" y1="0.785" x2="0.785" y2="469.491" stroke="currentColor" stroke-width="0.602" stroke-opacity="0.319"/>
+      <line pathLength="1" style="animation-delay:36ms" x1="53.726" y1="0.785" x2="0.785" y2="454.844" stroke="currentColor" stroke-width="0.602" stroke-opacity="0.339"/>
+      <line pathLength="1" style="animation-delay:48ms" x1="71.373" y1="0.785" x2="0.785" y2="440.197" stroke="currentColor" stroke-width="0.602" stroke-opacity="0.359"/>
+      <line pathLength="1" style="animation-delay:60ms" x1="89.02" y1="0.785" x2="0.785" y2="425.55" stroke="currentColor" stroke-width="0.602" stroke-opacity="0.379"/>
+      <line pathLength="1" style="animation-delay:72ms" x1="106.667" y1="0.785" x2="0.785" y2="410.903" stroke="currentColor" stroke-width="0.602" stroke-opacity="0.398"/>
+      <line pathLength="1" style="animation-delay:84ms" x1="124.314" y1="0.785" x2="0.785" y2="396.256" stroke="currentColor" stroke-width="0.602" stroke-opacity="0.418"/>
+      <line pathLength="1" style="animation-delay:96ms" x1="141.961" y1="0.785" x2="0.785" y2="381.609" stroke="currentColor" stroke-width="0.602" stroke-opacity="0.438"/>
+      <line pathLength="1" style="animation-delay:108ms" x1="159.609" y1="0.785" x2="0.785" y2="366.961" stroke="currentColor" stroke-width="0.602" stroke-opacity="0.457"/>
+      <line pathLength="1" style="animation-delay:120ms" x1="177.256" y1="0.785" x2="0.785" y2="352.314" stroke="currentColor" stroke-width="0.602" stroke-opacity="0.477"/>
+      <line pathLength="1" style="animation-delay:132ms" x1="194.903" y1="0.785" x2="0.785" y2="337.667" stroke="currentColor" stroke-width="0.602" stroke-opacity="0.497"/>
+      <line pathLength="1" style="animation-delay:144ms" x1="212.55" y1="0.785" x2="0.785" y2="323.02" stroke="currentColor" stroke-width="0.602" stroke-opacity="0.516"/>
+      <line pathLength="1" style="animation-delay:156ms" x1="230.197" y1="0.785" x2="0.785" y2="308.373" stroke="currentColor" stroke-width="0.602" stroke-opacity="0.536"/>
+      <line pathLength="1" style="animation-delay:168ms" x1="247.844" y1="0.785" x2="0.785" y2="293.726" stroke="currentColor" stroke-width="0.602" stroke-opacity="0.556"/>
+      <line pathLength="1" style="animation-delay:180ms" x1="265.491" y1="0.785" x2="0.785" y2="279.079" stroke="currentColor" stroke-width="0.602" stroke-opacity="0.576"/>
+      <line pathLength="1" style="animation-delay:192ms" x1="283.138" y1="0.785" x2="0.785" y2="264.432" stroke="currentColor" stroke-width="0.602" stroke-opacity="0.595"/>
+      <line pathLength="1" style="animation-delay:204ms" x1="300.785" y1="0.785" x2="0.785" y2="249.785" stroke="currentColor" stroke-width="0.602" stroke-opacity="0.615"/>
+      <line pathLength="1" style="animation-delay:216ms" x1="318.432" y1="0.785" x2="0.785" y2="235.138" stroke="currentColor" stroke-width="0.602" stroke-opacity="0.635"/>
+      <line pathLength="1" style="animation-delay:228ms" x1="336.079" y1="0.785" x2="0.785" y2="220.491" stroke="currentColor" stroke-width="0.602" stroke-opacity="0.654"/>
+      <line pathLength="1" style="animation-delay:240ms" x1="353.726" y1="0.785" x2="0.785" y2="205.844" stroke="currentColor" stroke-width="0.602" stroke-opacity="0.674"/>
+      <line pathLength="1" style="animation-delay:252ms" x1="371.373" y1="0.785" x2="0.785" y2="191.197" stroke="currentColor" stroke-width="0.602" stroke-opacity="0.694"/>
+      <line pathLength="1" style="animation-delay:264ms" x1="389.02" y1="0.785" x2="0.785" y2="176.55" stroke="currentColor" stroke-width="0.602" stroke-opacity="0.714"/>
+      <line pathLength="1" style="animation-delay:276ms" x1="406.667" y1="0.785" x2="0.785" y2="161.903" stroke="currentColor" stroke-width="0.602" stroke-opacity="0.733"/>
+      <line pathLength="1" style="animation-delay:288ms" x1="424.314" y1="0.785" x2="0.785" y2="147.256" stroke="currentColor" stroke-width="0.602" stroke-opacity="0.753"/>
+      <line pathLength="1" style="animation-delay:300ms" x1="441.961" y1="0.785" x2="0.785" y2="132.609" stroke="currentColor" stroke-width="0.602" stroke-opacity="0.773"/>
+      <line pathLength="1" style="animation-delay:312ms" x1="459.609" y1="0.785" x2="0.785" y2="117.961" stroke="currentColor" stroke-width="0.602" stroke-opacity="0.792"/>
+      <line pathLength="1" style="animation-delay:324ms" x1="477.256" y1="0.785" x2="0.785" y2="103.314" stroke="currentColor" stroke-width="0.657" stroke-opacity="0.812"/>
+      <line pathLength="1" style="animation-delay:336ms" x1="494.903" y1="0.785" x2="0.785" y2="88.667" stroke="currentColor" stroke-width="0.774" stroke-opacity="0.832"/>
+      <line pathLength="1" style="animation-delay:348ms" x1="512.55" y1="0.785" x2="0.785" y2="74.02" stroke="currentColor" stroke-width="0.891" stroke-opacity="0.851"/>
+      <line pathLength="1" style="animation-delay:360ms" x1="530.197" y1="0.785" x2="0.785" y2="59.373" stroke="currentColor" stroke-width="1.008" stroke-opacity="0.871"/>
+      <line pathLength="1" style="animation-delay:372ms" x1="547.844" y1="0.785" x2="0.785" y2="44.726" stroke="currentColor" stroke-width="1.125" stroke-opacity="0.891"/>
+      <line pathLength="1" style="animation-delay:384ms" x1="565.491" y1="0.785" x2="0.785" y2="30.079" stroke="currentColor" stroke-width="1.243" stroke-opacity="0.911"/>
+      <line pathLength="1" style="animation-delay:396ms" x1="583.138" y1="0.785" x2="0.785" y2="15.432" stroke="currentColor" stroke-width="1.36" stroke-opacity="0.93"/>
+      <line pathLength="1" style="animation-delay:408ms" x1="600.785" y1="0.785" x2="0.785" y2="0.785" stroke="currentColor" stroke-width="1.477" stroke-opacity="0.95"/>
+    </g>
+  </g>
+</svg>

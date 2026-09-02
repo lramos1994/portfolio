@@ -7,7 +7,7 @@
   <meta name="description" content="Full-stack developer, twelve years on payment, investment, and risk systems. PHP/Laravel, TypeScript, Python. Also SolarSys, a deterministic SVG generator.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Lora:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=IBM+Plex+Mono:wght@400&family=Source+Serif+4:opsz,wght@8..60,400&display=swap" rel="stylesheet">
   <style>
     :root {
       --paper: #f9f9f7;
@@ -19,6 +19,15 @@
       --frame-line: #202a3a;
       --focus: #8b4a2f;
       --content-width: min(100%, 46rem);
+
+      /* dark band: the project section is a scene the author projects,
+         not an image pasted onto the paper */
+      --band: #080d1a;
+      --band-ink: #e8e4da;
+      --band-muted: #9a958a;
+      --band-accent: #a8bfe0;
+      --band-rule: #26303f;
+      --band-focus: #d98a5f;
     }
 
     * {
@@ -33,8 +42,9 @@
       margin: 0;
       background: var(--paper);
       color: var(--ink);
-      font-family: "Lora", Georgia, serif;
-      line-height: 1.72;
+      font-family: "Source Serif 4", Georgia, serif;
+      font-size: 1.05rem;
+      line-height: 1.68;
       -webkit-font-smoothing: antialiased;
       text-rendering: optimizeLegibility;
     }
@@ -56,14 +66,132 @@
     }
 
     main {
-      width: var(--content-width);
-      margin: 0 auto;
-      padding: 4.5rem 1.5rem 3rem;
+      width: 100%;
+      margin: 0;
+      padding: 0;
     }
 
-    section + section,
-    footer {
-      margin-top: 4.5rem;
+    /* A band spans the full viewport width; the reading column inside it
+       keeps the same measure the paper sections use, so text never moves. */
+    .column {
+      width: var(--content-width);
+      margin: 0 auto;
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+      /* the reading column is always the top layer: an ornament may pass
+         behind the measure, never in front of a word */
+      position: relative;
+      z-index: 1;
+    }
+
+    .band-paper {
+      position: relative;
+      isolation: isolate;
+      padding-top: 4.5rem;
+      padding-bottom: 4.5rem;
+      /* fail-closed: even if an ornament were mis-sized, it can never
+         widen the document and produce horizontal scroll */
+      overflow: hidden;
+      overflow: clip;
+    }
+
+    .band-dark {
+      position: relative;
+      isolation: isolate;
+      background: var(--band);
+      color: var(--band-ink);
+      padding-top: 4.5rem;
+      padding-bottom: 4.5rem;
+      /* the edge between paper and band IS the transition; the hairline
+         keeps it from reading as a raw crop at the top seam */
+      border-top: 1px solid var(--band-rule);
+      overflow: hidden;
+      overflow: clip;
+    }
+
+    .band-dark .section-label,
+    .band-dark .project-links {
+      color: var(--band-accent);
+    }
+
+    .band-dark .section-copy,
+    .band-dark h2 {
+      color: var(--band-ink);
+    }
+
+    .band-dark .figure-caption {
+      color: var(--band-muted);
+    }
+
+    .band-dark a:hover {
+      color: #ffffff;
+    }
+
+    .band-dark a:focus-visible {
+      outline-color: var(--band-focus);
+    }
+
+    /* ------------------------------------------------------------------
+       Line-envelope ornaments.
+
+       Four assets, one per corner: env-line-{tl,tr,bl,br}.svg. They are
+       the SAME drawing with the geometry actually reflected into place,
+       not one file spun with a CSS transform. A transform was tried and
+       rejected: mirroring also mirrors the opacity ramp and the stroke
+       weighting, so the drawing ends up pointing away from the text in
+       three of the four corners. The reflection is baked into the
+       coordinates instead, and colour stays the only true variation —
+       every file uses stroke="currentColor" and inherits its palette
+       from the `color` property below.
+
+       Which corners appear where is a per-section choice made in the
+       markup, not something this stylesheet enforces: four assets, reused
+       as often as the layout wants them.
+
+       The reveal animation lives INSIDE each asset (see its <style>), not
+       here. That is deliberate: an <object>-loaded SVG is a separate
+       document, so this stylesheet does not cascade into it, and over
+       file:// the page's JS cannot reach into it either. Owning its own
+       animation is what makes the reveal fire in every case. The script
+       at the bottom only decides WHEN each file starts loading, because
+       the animation starts on load.
+
+       Two rules hold for the ornament itself:
+       1. pointer-events: none. An ornament must never be able to swallow
+          a click meant for a link.
+       2. z-index only. The reading column (.column) sits at z-index: 1;
+          ornaments sit at z-index: 0 and are placed and sized by hand.
+          Nothing else polices the boundary between ornament and text. */
+    .ornament {
+      position: absolute;
+      z-index: 0;
+      display: block;
+      width: 100%;
+      max-width: 550px;
+      /* The assets are cropped tight to their own ink, so this ratio is
+         theirs and not a round number. Stating it means the box is the
+         right size BEFORE the file arrives as well as after. Two things
+         depend on that: nothing shifts when the drawing lands, and the
+         ornament has real area for the IntersectionObserver to measure
+         while it is still empty — a zero-area target never reaches the
+         threshold, so it would never load at all. */
+      aspect-ratio: 601.571 / 499.571;
+      height: auto;
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .ornament-tl { top: 0; left: 0; }
+    .ornament-tr { top: 0; right: 0; }
+    .ornament-bl { bottom: 0; left: 0; }
+    .ornament-br { bottom: 0; right: 0; }
+
+    /* The colour variation, and the ONLY colour variation. The assets draw
+       in currentColor, but `color` does not cross into an <object>'s
+       document either, so the swap is a filter on the host side. */
+    .band-dark .ornament {
+      filter: hue-rotate(180deg) saturate(1.4);
     }
 
     h1,
@@ -76,14 +204,18 @@
 
     h1,
     h2 {
+      font-family: "Fraunces", Georgia, serif;
       font-weight: 600;
+      font-variation-settings: "opsz" 144, "SOFT" 0, "WONK" 0;
       letter-spacing: -0.02em;
       line-height: 1.15;
     }
 
     h1 {
-      font-size: clamp(2.55rem, 5vw, 4.3rem);
-      max-width: 13ch;
+      font-size: clamp(3.4rem, 8vw, 6.6rem);
+      line-height: 0.94;
+      letter-spacing: -0.045em;
+      max-width: 10ch;
     }
 
     h2 {
@@ -107,13 +239,13 @@
     .project-links,
     footer {
       font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
-      font-size: 0.88rem;
+      font-size: 0.78rem;
+      letter-spacing: 0.11em;
       line-height: 1.6;
     }
 
     .section-label {
       color: var(--accent);
-      letter-spacing: 0.08em;
       text-transform: uppercase;
       margin-bottom: 1rem;
     }
@@ -131,6 +263,7 @@
 
     .section-copy {
       color: var(--ink);
+      margin-top: 1.6rem;
     }
 
     .section-copy p {
@@ -144,12 +277,24 @@
       background: #f3f1ec;
     }
 
+    /* inside the dark band the paper mat would re-create the pasted-image
+       look; the band itself is the mat, so the frame dissolves */
+    .band-dark .project-frame {
+      border: 0;
+      padding: 0;
+      background: transparent;
+    }
+
     .project-stage {
       margin: 0;
       border: 1px solid var(--frame-line);
       background: var(--frame);
       aspect-ratio: 16 / 9;
       overflow: hidden;
+    }
+
+    .band-dark .project-stage {
+      border-color: var(--band-rule);
     }
 
     .project-stage object {
@@ -173,28 +318,38 @@
     }
 
     footer {
-      width: var(--content-width);
+      width: 100%;
       margin-left: auto;
       margin-right: auto;
-      padding: 0 1.5rem 3rem;
+      padding: 4.5rem 1.5rem 3rem;
       color: var(--muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     footer nav {
       display: flex;
       flex-wrap: wrap;
       gap: 0.35rem 0.8rem;
+      text-align: center;
+      justify-content: center;
     }
 
     @media (max-width: 640px) {
-      main {
+      .band-paper {
         padding-top: 3.4rem;
-        padding-bottom: 2.25rem;
+        padding-bottom: 3.5rem;
       }
 
-      section + section,
+      .band-dark {
+        padding-top: 3.5rem;
+        padding-bottom: 3.5rem;
+      }
+
       footer {
-        margin-top: 3.5rem;
+        padding-top: 3.5rem;
+        padding-bottom: 2.25rem;
       }
 
       .project-frame {
@@ -223,51 +378,87 @@
 </head>
 <body>
   <main>
-    <section aria-labelledby="intro-title">
-      <p class="section-label">Section 1</p>
-      <h1 id="intro-title">Lucas Ramos</h1>
-      <p class="lede">I have spent more than a decade building software where a wrong number costs someone money.</p>
-      <div class="section-copy">
-        <p>Most of that work has been in finance: investment platforms, payment flows, and the risk checks sitting behind them.</p>
-        <p>PHP and Laravel are my backbone, and I reach for TypeScript with React or Vue when the interface has to carry real state. I use Python, usually Django or FastAPI, for the parts that lean toward data.</p>
-        <p>I optimize for code that still makes sense two years later, when I am the one reading it back.</p>
+    <section class="band-paper" aria-labelledby="intro-title">
+      <div class="column">
+        <p class="section-label">01 / Financial systems — 12 years</p>
+        <h1 id="intro-title">Lucas Ramos</h1>
+        <p class="lede">I have spent more than a decade building software where a wrong number costs someone money.</p>
+        <div class="section-copy">
+          <p>Most of that work has been in finance: investment platforms, payment flows, and the risk checks sitting behind them.</p>
+          <p>PHP and Laravel are my backbone, and I reach for TypeScript with React or Vue when the interface has to carry real state. I use Python, usually Django or FastAPI, for the parts that lean toward data.</p>
+          <p>I optimize for code that still makes sense two years later, when I am the one reading it back.</p>
+        </div>
+        <p class="stack-line">PHP/Laravel · TypeScript/React/Vue · Python/Django/FastAPI</p>
       </div>
-      <p class="stack-line">PHP/Laravel · TypeScript/React/Vue · Python/Django/FastAPI</p>
+      <!--
+        ORNAMENTS:intro — top-left and bottom-right.
+
+        data-src, not data: the reveal inside each asset starts when the
+        asset loads, so the script defers the load until the corner is on
+        screen. If the script never runs, the noscript block below paints
+        the same corners, just without the staggered entrance — so the two
+        lists must always name the SAME corners.
+      -->
+      <object class="ornament ornament-tl" type="image/svg+xml" data-src="assets/env-line-tl.svg" role="presentation" aria-hidden="true" tabindex="-1"></object>
+      <object class="ornament ornament-br" type="image/svg+xml" data-src="assets/env-line-br.svg" role="presentation" aria-hidden="true" tabindex="-1"></object>
+      <noscript>
+        <object class="ornament ornament-tl" type="image/svg+xml" data="assets/env-line-tl.svg" role="presentation" aria-hidden="true" tabindex="-1"></object>
+        <object class="ornament ornament-br" type="image/svg+xml" data="assets/env-line-br.svg" role="presentation" aria-hidden="true" tabindex="-1"></object>
+      </noscript>
+      <!-- /ORNAMENTS:intro -->
     </section>
 
-    <section aria-labelledby="solarsys-title">
-      <p class="section-label">Section 2</p>
-      <h2 id="solarsys-title">SolarSys</h2>
-      <div class="section-copy">
-        <p>SolarSys is a TypeScript and Vite app that generates animated solar systems as self-contained SVG files, entirely in the browser, with no backend. The generator is deterministic, so the same seed always produces the same universe, and that is what makes it testable: Vitest covers the generator, Playwright covers the animation.</p>
-      </div>
+    <section class="band-dark" aria-labelledby="solarsys-title">
+      <!-- ORNAMENTS:dark — top-right and bottom-left, band palette via CSS filter -->
+      <object class="ornament ornament-tr" type="image/svg+xml" data-src="assets/env-line-tr.svg" role="presentation" aria-hidden="true" tabindex="-1"></object>
+      <object class="ornament ornament-bl" type="image/svg+xml" data-src="assets/env-line-bl.svg" role="presentation" aria-hidden="true" tabindex="-1"></object>
+      <noscript>
+        <object class="ornament ornament-tr" type="image/svg+xml" data="assets/env-line-tr.svg" role="presentation" aria-hidden="true" tabindex="-1"></object>
+        <object class="ornament ornament-bl" type="image/svg+xml" data="assets/env-line-bl.svg" role="presentation" aria-hidden="true" tabindex="-1"></object>
+      </noscript>
+      <!-- /ORNAMENTS:dark -->
+      <div class="column">
+        <p class="section-label">02 / Generative SVG — deterministic</p>
+        <h2 id="solarsys-title">SolarSys</h2>
+        <div class="section-copy">
+          <p>SolarSys is a TypeScript and Vite app that generates animated solar systems as self-contained SVG files, entirely in the browser, with no backend. The generator is deterministic, so the same seed always produces the same universe, and that is what makes it testable: Vitest covers the generator, Playwright covers the animation.</p>
+        </div>
 
-      <div class="project-frame">
-        <figure>
-          <div class="project-stage">
-            <object
-              id="solarsys-scene"
-              type="image/svg+xml"
-              data="assets/solarsys-scene.svg"
-              tabindex="-1"
-              role="img"
-              aria-label="Animated generated scene: a star with orbiting planets, one ringed and one with a moon, an asteroid belt, and comets crossing the field."
-            >
-              <img src="assets/solarsys-scene.svg" alt="Animated generated scene: a star with orbiting planets, one ringed and one with a moon, an asteroid belt, and comets crossing the field.">
-            </object>
-          </div>
-          <figcaption class="figure-caption">Fig 1: Generated by the SolarSys engine. Rendered via SMIL animateMotion. Seed: 20260903.</figcaption>
-        </figure>
+        <div class="project-frame">
+          <figure>
+            <div class="project-stage">
+              <object
+                id="solarsys-scene"
+                type="image/svg+xml"
+                data="assets/solarsys-scene.svg"
+                tabindex="-1"
+                role="img"
+                aria-label="Animated generated scene: a central star orbited by seven planets, two of them ringed and four with moons, a dense asteroid belt between the inner and outer systems, and a comet crossing the starfield."
+              >
+                <img src="assets/solarsys-scene.svg" alt="Animated generated scene: a central star orbited by seven planets, two of them ringed and four with moons, a dense asteroid belt between the inner and outer systems, and a comet crossing the starfield.">
+              </object>
+            </div>
+            <figcaption class="figure-caption">Fig 1: Generated by the SolarSys engine. Rendered via SMIL animateMotion. Seed: 20260903.</figcaption>
+          </figure>
 
-        <p class="project-links">
-          <a href="https://lramos1994.github.io/solarsys/" target="_blank" rel="noopener">Open SolarSys →</a>
-          <a href="https://github.com/lramos1994/solarsys" target="_blank" rel="noopener">Source: github.com/lramos1994/solarsys</a>
-        </p>
+          <p class="project-links">
+            <a href="https://lramos1994.github.io/solarsys/" target="_blank" rel="noopener">Open SolarSys →</a>
+            <a href="https://github.com/lramos1994/solarsys" target="_blank" rel="noopener">Source: github.com/lramos1994/solarsys</a>
+          </p>
+        </div>
       </div>
     </section>
   </main>
 
-  <footer>
+  <footer class="band-paper">
+    <!--
+      ORNAMENTS:footer — top-left only.
+    -->
+    <object class="ornament ornament-tl" type="image/svg+xml" data-src="assets/env-line-tl.svg" role="presentation" aria-hidden="true" tabindex="-1"></object>
+    <noscript>
+      <object class="ornament ornament-tl" type="image/svg+xml" data="assets/env-line-tl.svg" role="presentation" aria-hidden="true" tabindex="-1"></object>
+    </noscript>
+    <!-- /ORNAMENTS:intro -->
     <nav aria-label="External links">
       <a href="https://github.com/lramos1994" target="_blank" rel="noopener">github.com/lramos1994</a>
       <a href="https://linkedin.com/in/lramos-dev" target="_blank" rel="noopener">linkedin.com/in/lramos-dev</a>
@@ -320,6 +511,68 @@
         reducedMotion.addEventListener('change', updateForPreference);
       } else if (typeof reducedMotion.addListener === 'function') {
         reducedMotion.addListener(updateForPreference);
+      }
+    })();
+
+    /* ------------------------------------------------------------------
+       Ornament reveal — deferred load, and nothing else.
+
+       This block does NOT animate anything. Each ornament asset owns its
+       own reveal in its own <style>, and that reveal starts when the file
+       loads. So the only thing left for the page to decide is WHEN each
+       file starts loading, which is what this does: the <object> ships
+       with data-src instead of data, and the src is promoted to data the
+       first time the ornament scrolls into view.
+
+       Why it is built this way, and not as a script that reaches into the
+       drawing: an <object>-loaded SVG is a separate document. Over
+       file:// Chrome gives it an opaque origin and contentDocument comes
+       back null, so a script-driven reveal silently did nothing whenever
+       the page was opened straight from disk. Nothing here touches the
+       inner document, so nothing here can break that way.
+
+       Failure modes, all of them benign:
+       - No JS: each section's <noscript> block ships the same corners
+         with a plain data attribute. They paint, all at once, no stagger.
+       - No IntersectionObserver: every ornament loads immediately.
+       - prefers-reduced-motion: the assets' own @media rule pins them to
+         the finished state; loading them early changes nothing.
+       ------------------------------------------------------------------ */
+    (() => {
+      const ornaments = Array.prototype.slice.call(
+        document.querySelectorAll('object.ornament[data-src]')
+      );
+      if (!ornaments.length) return;
+
+      const load = (object) => {
+        const src = object.getAttribute('data-src');
+        // Promote once. removeAttribute first so a second call is a no-op
+        // even if an observer somehow fires twice.
+        if (!src) return;
+        object.removeAttribute('data-src');
+        object.setAttribute('data', src);
+      };
+
+      // No observer means no way to know when a corner is visible, so the
+      // honest fallback is to show all of them rather than none.
+      if (typeof window.IntersectionObserver !== 'function') {
+        for (let i = 0; i < ornaments.length; i++) load(ornaments[i]);
+        return;
+      }
+
+      const observer = new IntersectionObserver((entries) => {
+        for (let i = 0; i < entries.length; i++) {
+          const entry = entries[i];
+          if (!entry.isIntersecting) continue;
+          // Unobserve FIRST: this ornament is spent, and everything after
+          // this line is allowed to fail without re-triggering it.
+          observer.unobserve(entry.target);
+          load(entry.target);
+        }
+      }, { threshold: 0.15, rootMargin: '0px 0px -5% 0px' });
+
+      for (let i = 0; i < ornaments.length; i++) {
+        observer.observe(ornaments[i]);
       }
     })();
   </script>
