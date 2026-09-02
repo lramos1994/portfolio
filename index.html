@@ -134,182 +134,64 @@
     /* ------------------------------------------------------------------
        Line-envelope ornaments.
 
-       Four rules hold for every one of them, and each rule exists because
-       its absence produced a real defect:
+       Four assets, one per corner: env-line-{tl,tr,bl,br}.svg. They are
+       the SAME drawing with the geometry actually reflected into place,
+       not one file spun with a CSS transform. A transform was tried and
+       rejected: mirroring also mirrors the opacity ramp and the stroke
+       weighting, so the drawing ends up pointing away from the text in
+       three of the four corners. The reflection is baked into the
+       coordinates instead, and colour stays the only true variation —
+       every file uses stroke="currentColor" and inherits its palette
+       from the `color` property below.
 
+       Which corners appear where is a per-section choice made in the
+       markup, not something this stylesheet enforces: four assets, reused
+       as often as the layout wants them.
+
+       The reveal animation lives INSIDE each asset (see its <style>), not
+       here. That is deliberate: an <object>-loaded SVG is a separate
+       document, so this stylesheet does not cascade into it, and over
+       file:// the page's JS cannot reach into it either. Owning its own
+       animation is what makes the reveal fire in every case. The script
+       at the bottom only decides WHEN each file starts loading, because
+       the animation starts on load.
+
+       Two rules hold for the ornament itself:
        1. pointer-events: none. An ornament must never be able to swallow
           a click meant for a link.
-       2. Uniform scale only. Width is set, height stays auto, and the
-          viewBox aspect ratio governs; preserveAspectRatio is left at its
-          xMidYMid meet default and is never set to none.
-       3. The vertex stays on screen. Each SVG is anchored flush to a
-          corner with a zero offset, and the vertex sits inside its own
-          viewBox with a 12-14px margin, so the corner of the envelope is
-          always visible; only the far ends of the rays can be clipped.
-       4. No fade mask. A mask that eats the middle of the parabola kills
-          the drawing, so the drawing carries its own opacity ramp instead
-          and no mask is applied here.
-
-       Sizes are stepped through media queries rather than viewport units:
-       widths in vw would reintroduce the horizontal-overflow class of bug
-       that the full-bleed band was hardened against.
-       ------------------------------------------------------------------ */
+       2. z-index only. The reading column (.column) sits at z-index: 1;
+          ornaments sit at z-index: 0 and are placed and sized by hand.
+          Nothing else polices the boundary between ornament and text. */
     .ornament {
       position: absolute;
       z-index: 0;
       display: block;
+      width: 100%;
+      max-width: 550px;
+      /* The assets are cropped tight to their own ink, so this ratio is
+         theirs and not a round number. Stating it means the box is the
+         right size BEFORE the file arrives as well as after. Two things
+         depend on that: nothing shifts when the drawing lands, and the
+         ornament has real area for the IntersectionObserver to measure
+         while it is still empty — a zero-area target never reaches the
+         threshold, so it would never load at all. */
+      aspect-ratio: 601.571 / 499.571;
       height: auto;
       pointer-events: none;
       user-select: none;
       -webkit-user-select: none;
     }
 
-    /* The stroke reveal.
+    .ornament-tl { top: 0; left: 0; }
+    .ornament-tr { top: 0; right: 0; }
+    .ornament-bl { bottom: 0; left: 0; }
+    .ornament-br { bottom: 0; right: 0; }
 
-       The default state carries NO stroke-dasharray. That is deliberate and
-       it is what makes reduced motion, unsupported JS, and the post-reveal
-       resting state all correct for free: an untouched ornament is simply a
-       finished ornament. Only the script paints the dash on, and only for
-       the ~1.3s the reveal lasts.
-
-       It has to work that way. These lines use vector-effect:
-       non-scaling-stroke, and that puts dash geometry in SCREEN pixels while
-       the coordinates stay in user units. Measured in Chromium, WebKit and
-       Firefox: a line 200 user units long, rendered 50px wide, with
-       stroke-dasharray:200 and stroke-dashoffset:150, paints in FULL in all
-       three — the offset is being read as 150 screen px against a 50px line,
-       not as three quarters of the geometry. pathLength="1" does not fix it
-       either; the normalization is applied and the result is still consumed
-       in screen space, so dasharray:1 behaves identically. So a dash length
-       written in CSS would be wrong at every width step (150 / 220 / 300 /
-       440px) and wrong again after any resize. The script measures each
-       line's rendered length instead, and strips the properties when the
-       reveal finishes so a later resize cannot open gaps in a pattern that
-       was cut for the old size.
-
-       One shot, no loop. The SolarSys scene stays the only continuous motion
-       on the page. */
-    .ornament.is-revealing line {
-      transition: stroke-dashoffset 0.9s cubic-bezier(0.22, 0.61, 0.36, 1);
-      transition-delay: var(--reveal-delay, 0ms);
-    }
-
-    /* Belt and braces. The script already refuses to instrument anything
-       when reduce is set, so these ornaments never get a dasharray at all
-       and there is nothing here to neutralize. This rule exists for the one
-       case the script cannot catch: the preference flipped to reduce while a
-       reveal is mid-flight. */
-    @media (prefers-reduced-motion: reduce) {
-      .ornament.is-revealing line {
-        transition: none;
-        stroke-dashoffset: 0;
-      }
-    }
-
-    /* bottom-right of the paper band: it anchors the eye at the end of
-       the intro without competing with the name.
-
-       The whole composition switches at 736px, and that number is not a
-       device guess: the reading column is min(100%, 46rem), so below 736px
-       it fills the viewport edge to edge and there is NO gutter — the
-       ornaments would have to sit on top of the measure. At 736px and above
-       the column stops growing and real side gutters open.
-
-       An earlier revision switched at 641px instead, and the two properties
-       collided in the gap: between 641 and 724px the lifted figure painted
-       over the mono stack line (measured: 491 ink px at 641, decaying to 9
-       at 720). Moving the switch to 736px shrank that collision but did not
-       close it: at 736px the gutter is still exactly zero, so a lifted
-       figure of the old 220px width still reached 13px into the stack line,
-       and the band 736-765px stayed dirty.
-
-       The breakpoint is not the free parameter here. 736px is where the
-       dark band's ornament starts rendering, and the lift exists only to
-       stop this vertex and that one from landing together and reading as
-       one mirrored bowtie across the seam; deferring the lift past 736px
-       collapses the measured vertex separation from 84px to 10px and simply
-       trades this defect for that one. Both must switch on the same width.
-
-       So the free parameter is the WIDTH of the lifted figure, and the
-       binding case is 736px itself, where the column fills the viewport and
-       there is no gutter to pay for it. Measured at 736px, the horizontal
-       gap between this figure's ink and the stack line's line box falls
-       about 0.96px per 1px of figure width and reaches zero at ~206px.
-       180px sits 25px inside that limit, which is wider than the 1.5px the
-       line moves when the webfont fails to load and the fallback mono is
-       used. Above 736px the gutter opens at 0.5px per 1px of viewport, so
-       the margin only ever grows. */
-    .ornament-intro {
-      right: 0;
-      bottom: 0;
-      width: 150px;
-    }
-
-    /* below the gutter threshold only the intro renders, flush to the
-       corner: the seam and dark-band figures have nowhere to go but on top
-       of the measure, and the lift would push this one onto the stack line */
-    @media (max-width: 735px) {
-      .ornament-seam,
-      .ornament-dark {
-        display: none;
-      }
-    }
-
-    @media (min-width: 736px) {
-      .ornament-intro {
-        width: 180px;
-        bottom: 4.5rem;
-      }
-    }
-
-    /* the transition: a vertical envelope on the left margin, at the seam
-       between the bands. It lives on the paper side because its palette
-       is the dark-on-light ramp; over the dark band it would be invisible.
-
-       Hidden by default and only switched on above 1100px: the reading
-       column is 46rem (736px), so below ~1076px there is no left gutter
-       wide enough to hold a 153px figure, and it lands on the text.
-       Measured: at 768px it put 1600 ink pixels inside real line boxes. */
-    .ornament-seam {
-      display: none;
-      left: 0;
-      bottom: 0;
-      /* viewBox is 160x230, so 153px wide renders ~220px tall — the
-         vertical measure the placement calls for */
-      width: 153px;
-    }
-
-    /* top-right of the dark band */
-    .ornament-dark {
-      right: 0;
-      top: 0;
-      width: 230px;
-    }
-
-    @media (min-width: 1100px) {
-      .ornament-intro {
-        width: 300px;
-      }
-
-      .ornament-dark {
-        width: 300px;
-      }
-
-      /* enough left gutter exists now: 1100 - 736 = 364px, split 182px
-         per side against a 153px figure */
-      .ornament-seam {
-        display: block;
-      }
-    }
-
-    @media (min-width: 1600px) {
-      .ornament-intro {
-        width: 440px;
-      }
-
-      .ornament-dark {
-        width: 420px;
-      }
+    /* The colour variation, and the ONLY colour variation. The assets draw
+       in currentColor, but `color` does not cross into an <object>'s
+       document either, so the swap is a filter on the host side. */
+    .band-dark .ornament {
+      filter: hue-rotate(180deg) saturate(1.4);
     }
 
     h1,
@@ -436,17 +318,22 @@
     }
 
     footer {
-      width: var(--content-width);
+      width: 100%;
       margin-left: auto;
       margin-right: auto;
       padding: 4.5rem 1.5rem 3rem;
       color: var(--muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     footer nav {
       display: flex;
       flex-wrap: wrap;
       gap: 0.35rem 0.8rem;
+      text-align: center;
+      justify-content: center;
     }
 
     @media (max-width: 640px) {
@@ -503,162 +390,33 @@
         </div>
         <p class="stack-line">PHP/Laravel · TypeScript/React/Vue · Python/Django/FastAPI</p>
       </div>
-      <!-- ORNAMENT:intro -->
-      <svg class="ornament ornament-intro" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 540" fill="none" role="presentation" aria-hidden="true" focusable="false" shape-rendering="geometricPrecision" data-envelope="env-intro-br" data-corner="br" data-n="34">
-        <g fill="none" stroke-linecap="butt" vector-effect="non-scaling-stroke">
-          <g data-layer="back" opacity="0.35" transform="translate(5,7)">
-            <line vector-effect="non-scaling-stroke" x1="626" y1="526" x2="626" y2="28" stroke="#17273c" style="stroke:oklch(0.27 0.045 255)" stroke-width="0.55" stroke-opacity="0.28"/>
-            <line vector-effect="non-scaling-stroke" x1="573.059" y1="526" x2="626" y2="71.941" stroke="#103043" style="stroke:oklch(0.296 0.05 236.735)" stroke-width="0.55" stroke-opacity="0.339"/>
-            <line vector-effect="non-scaling-stroke" x1="520.118" y1="526" x2="626" y2="115.882" stroke="#063a46" style="stroke:oklch(0.323 0.055 218.471)" stroke-width="0.55" stroke-opacity="0.398"/>
-            <line vector-effect="non-scaling-stroke" x1="467.176" y1="526" x2="626" y2="159.824" stroke="#004347" style="stroke:oklch(0.349 0.06 200.206)" stroke-width="0.55" stroke-opacity="0.457"/>
-            <line vector-effect="non-scaling-stroke" x1="414.235" y1="526" x2="626" y2="203.765" stroke="#074c44" style="stroke:oklch(0.376 0.064 181.941)" stroke-width="0.55" stroke-opacity="0.516"/>
-            <line vector-effect="non-scaling-stroke" x1="361.294" y1="526" x2="626" y2="247.706" stroke="#1d543e" style="stroke:oklch(0.402 0.069 163.676)" stroke-width="0.55" stroke-opacity="0.576"/>
-            <line vector-effect="non-scaling-stroke" x1="308.353" y1="526" x2="626" y2="291.647" stroke="#335a36" style="stroke:oklch(0.429 0.074 145.412)" stroke-width="0.55" stroke-opacity="0.635"/>
-            <line vector-effect="non-scaling-stroke" x1="255.412" y1="526" x2="626" y2="335.588" stroke="#4b5f2c" style="stroke:oklch(0.455 0.079 127.147)" stroke-width="0.55" stroke-opacity="0.694"/>
-            <line vector-effect="non-scaling-stroke" x1="202.471" y1="526" x2="626" y2="379.529" stroke="#626223" style="stroke:oklch(0.482 0.084 108.882)" stroke-width="0.55" stroke-opacity="0.753"/>
-            <line vector-effect="non-scaling-stroke" x1="149.529" y1="526" x2="626" y2="423.471" stroke="#796320" style="stroke:oklch(0.508 0.089 90.618)" stroke-width="0.601" stroke-opacity="0.812"/>
-            <line vector-effect="non-scaling-stroke" x1="96.588" y1="526" x2="626" y2="467.412" stroke="#8e6327" style="stroke:oklch(0.535 0.094 72.353)" stroke-width="0.922" stroke-opacity="0.871"/>
-            <line vector-effect="non-scaling-stroke" x1="43.647" y1="526" x2="626" y2="511.353" stroke="#a16439" style="stroke:oklch(0.561 0.098 54.088)" stroke-width="1.243" stroke-opacity="0.93"/>
-          </g>
-          <g data-layer="front">
-          <line vector-effect="non-scaling-stroke" x1="626" y1="526" x2="626" y2="28" stroke="#17273c" style="stroke:oklch(0.27 0.045 255)" stroke-width="0.55" stroke-opacity="0.28"/>
-          <line vector-effect="non-scaling-stroke" x1="608.353" y1="526" x2="626" y2="42.647" stroke="#152a3f" style="stroke:oklch(0.279 0.047 248.912)" stroke-width="0.55" stroke-opacity="0.3"/>
-          <line vector-effect="non-scaling-stroke" x1="590.706" y1="526" x2="626" y2="57.294" stroke="#132d41" style="stroke:oklch(0.288 0.048 242.824)" stroke-width="0.55" stroke-opacity="0.319"/>
-          <line vector-effect="non-scaling-stroke" x1="573.059" y1="526" x2="626" y2="71.941" stroke="#103043" style="stroke:oklch(0.296 0.05 236.735)" stroke-width="0.55" stroke-opacity="0.339"/>
-          <line vector-effect="non-scaling-stroke" x1="555.412" y1="526" x2="626" y2="86.588" stroke="#0d3444" style="stroke:oklch(0.305 0.051 230.647)" stroke-width="0.55" stroke-opacity="0.359"/>
-          <line vector-effect="non-scaling-stroke" x1="537.765" y1="526" x2="626" y2="101.235" stroke="#0a3745" style="stroke:oklch(0.314 0.053 224.559)" stroke-width="0.55" stroke-opacity="0.379"/>
-          <line vector-effect="non-scaling-stroke" x1="520.118" y1="526" x2="626" y2="115.882" stroke="#063a46" style="stroke:oklch(0.323 0.055 218.471)" stroke-width="0.55" stroke-opacity="0.398"/>
-          <line vector-effect="non-scaling-stroke" x1="502.471" y1="526" x2="626" y2="130.529" stroke="#033d47" style="stroke:oklch(0.332 0.056 212.382)" stroke-width="0.55" stroke-opacity="0.418"/>
-          <line vector-effect="non-scaling-stroke" x1="484.824" y1="526" x2="626" y2="145.176" stroke="#014047" style="stroke:oklch(0.341 0.058 206.294)" stroke-width="0.55" stroke-opacity="0.438"/>
-          <line vector-effect="non-scaling-stroke" x1="467.176" y1="526" x2="626" y2="159.824" stroke="#004347" style="stroke:oklch(0.349 0.06 200.206)" stroke-width="0.55" stroke-opacity="0.457"/>
-          <line vector-effect="non-scaling-stroke" x1="449.529" y1="526" x2="626" y2="174.471" stroke="#004646" style="stroke:oklch(0.358 0.061 194.118)" stroke-width="0.55" stroke-opacity="0.477"/>
-          <line vector-effect="non-scaling-stroke" x1="431.882" y1="526" x2="626" y2="189.118" stroke="#024945" style="stroke:oklch(0.367 0.063 188.029)" stroke-width="0.55" stroke-opacity="0.497"/>
-          <line vector-effect="non-scaling-stroke" x1="414.235" y1="526" x2="626" y2="203.765" stroke="#074c44" style="stroke:oklch(0.376 0.064 181.941)" stroke-width="0.55" stroke-opacity="0.516"/>
-          <line vector-effect="non-scaling-stroke" x1="396.588" y1="526" x2="626" y2="218.412" stroke="#0e4f42" style="stroke:oklch(0.385 0.066 175.853)" stroke-width="0.55" stroke-opacity="0.536"/>
-          <line vector-effect="non-scaling-stroke" x1="378.941" y1="526" x2="626" y2="233.059" stroke="#165140" style="stroke:oklch(0.394 0.068 169.765)" stroke-width="0.55" stroke-opacity="0.556"/>
-          <line vector-effect="non-scaling-stroke" x1="361.294" y1="526" x2="626" y2="247.706" stroke="#1d543e" style="stroke:oklch(0.402 0.069 163.676)" stroke-width="0.55" stroke-opacity="0.576"/>
-          <line vector-effect="non-scaling-stroke" x1="343.647" y1="526" x2="626" y2="262.353" stroke="#24563b" style="stroke:oklch(0.411 0.071 157.588)" stroke-width="0.55" stroke-opacity="0.595"/>
-          <line vector-effect="non-scaling-stroke" x1="326" y1="526" x2="626" y2="277" stroke="#2c5839" style="stroke:oklch(0.42 0.073 151.5)" stroke-width="0.55" stroke-opacity="0.615"/>
-          <line vector-effect="non-scaling-stroke" x1="308.353" y1="526" x2="626" y2="291.647" stroke="#335a36" style="stroke:oklch(0.429 0.074 145.412)" stroke-width="0.55" stroke-opacity="0.635"/>
-          <line vector-effect="non-scaling-stroke" x1="290.706" y1="526" x2="626" y2="306.294" stroke="#3b5c33" style="stroke:oklch(0.438 0.076 139.324)" stroke-width="0.55" stroke-opacity="0.654"/>
-          <line vector-effect="non-scaling-stroke" x1="273.059" y1="526" x2="626" y2="320.941" stroke="#435d2f" style="stroke:oklch(0.446 0.077 133.235)" stroke-width="0.55" stroke-opacity="0.674"/>
-          <line vector-effect="non-scaling-stroke" x1="255.412" y1="526" x2="626" y2="335.588" stroke="#4b5f2c" style="stroke:oklch(0.455 0.079 127.147)" stroke-width="0.55" stroke-opacity="0.694"/>
-          <line vector-effect="non-scaling-stroke" x1="237.765" y1="526" x2="626" y2="350.235" stroke="#526029" style="stroke:oklch(0.464 0.081 121.059)" stroke-width="0.55" stroke-opacity="0.714"/>
-          <line vector-effect="non-scaling-stroke" x1="220.118" y1="526" x2="626" y2="364.882" stroke="#5a6126" style="stroke:oklch(0.473 0.082 114.971)" stroke-width="0.55" stroke-opacity="0.733"/>
-          <line vector-effect="non-scaling-stroke" x1="202.471" y1="526" x2="626" y2="379.529" stroke="#626223" style="stroke:oklch(0.482 0.084 108.882)" stroke-width="0.55" stroke-opacity="0.753"/>
-          <line vector-effect="non-scaling-stroke" x1="184.824" y1="526" x2="626" y2="394.176" stroke="#6a6221" style="stroke:oklch(0.491 0.085 102.794)" stroke-width="0.55" stroke-opacity="0.773"/>
-          <line vector-effect="non-scaling-stroke" x1="167.176" y1="526" x2="626" y2="408.824" stroke="#716320" style="stroke:oklch(0.499 0.087 96.706)" stroke-width="0.55" stroke-opacity="0.792"/>
-          <line vector-effect="non-scaling-stroke" x1="149.529" y1="526" x2="626" y2="423.471" stroke="#796320" style="stroke:oklch(0.508 0.089 90.618)" stroke-width="0.601" stroke-opacity="0.812"/>
-          <line vector-effect="non-scaling-stroke" x1="131.882" y1="526" x2="626" y2="438.118" stroke="#806321" style="stroke:oklch(0.517 0.09 84.529)" stroke-width="0.708" stroke-opacity="0.832"/>
-          <line vector-effect="non-scaling-stroke" x1="114.235" y1="526" x2="626" y2="452.765" stroke="#876324" style="stroke:oklch(0.526 0.092 78.441)" stroke-width="0.815" stroke-opacity="0.851"/>
-          <line vector-effect="non-scaling-stroke" x1="96.588" y1="526" x2="626" y2="467.412" stroke="#8e6327" style="stroke:oklch(0.535 0.094 72.353)" stroke-width="0.922" stroke-opacity="0.871"/>
-          <line vector-effect="non-scaling-stroke" x1="78.941" y1="526" x2="626" y2="482.059" stroke="#95642c" style="stroke:oklch(0.544 0.095 66.265)" stroke-width="1.029" stroke-opacity="0.891"/>
-          <line vector-effect="non-scaling-stroke" x1="61.294" y1="526" x2="626" y2="496.706" stroke="#9b6432" style="stroke:oklch(0.552 0.097 60.176)" stroke-width="1.136" stroke-opacity="0.911"/>
-          <line vector-effect="non-scaling-stroke" x1="43.647" y1="526" x2="626" y2="511.353" stroke="#a16439" style="stroke:oklch(0.561 0.098 54.088)" stroke-width="1.243" stroke-opacity="0.93"/>
-          <line vector-effect="non-scaling-stroke" x1="26" y1="526" x2="626" y2="526" stroke="#a76440" style="stroke:oklch(0.57 0.1 48)" stroke-width="1.35" stroke-opacity="0.95"/>
-          </g>
-        </g>
-      </svg>
-      <!-- /ORNAMENT:intro -->
-      <!-- ORNAMENT:seam -->
-      <svg class="ornament ornament-seam" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 230" fill="none" role="presentation" aria-hidden="true" focusable="false" shape-rendering="geometricPrecision" data-envelope="env-transition" data-corner="tl" data-n="24">
-        <g fill="none" stroke-linecap="butt" vector-effect="non-scaling-stroke">
-          <g data-layer="back" opacity="0.35" transform="translate(5,7)">
-            <line vector-effect="non-scaling-stroke" x1="12" y1="12" x2="12" y2="218" stroke="#17273c" style="stroke:oklch(0.27 0.045 255)" stroke-width="0.55" stroke-opacity="0.28"/>
-            <line vector-effect="non-scaling-stroke" x1="29" y1="12" x2="12" y2="192.25" stroke="#0c3445" style="stroke:oklch(0.307 0.052 229.125)" stroke-width="0.55" stroke-opacity="0.364"/>
-            <line vector-effect="non-scaling-stroke" x1="46" y1="12" x2="12" y2="166.5" stroke="#004247" style="stroke:oklch(0.345 0.059 203.25)" stroke-width="0.55" stroke-opacity="0.448"/>
-            <line vector-effect="non-scaling-stroke" x1="63" y1="12" x2="12" y2="140.75" stroke="#0c4e43" style="stroke:oklch(0.383 0.066 177.375)" stroke-width="0.55" stroke-opacity="0.531"/>
-            <line vector-effect="non-scaling-stroke" x1="80" y1="12" x2="12" y2="115" stroke="#2c5839" style="stroke:oklch(0.42 0.073 151.5)" stroke-width="0.55" stroke-opacity="0.615"/>
-            <line vector-effect="non-scaling-stroke" x1="97" y1="12" x2="12" y2="89.25" stroke="#4d5f2b" style="stroke:oklch(0.457 0.079 125.625)" stroke-width="0.55" stroke-opacity="0.699"/>
-            <line vector-effect="non-scaling-stroke" x1="114" y1="12" x2="12" y2="63.5" stroke="#6e6320" style="stroke:oklch(0.495 0.086 99.75)" stroke-width="0.55" stroke-opacity="0.782"/>
-            <line vector-effect="non-scaling-stroke" x1="131" y1="12" x2="12" y2="37.75" stroke="#8c6326" style="stroke:oklch(0.532 0.093 73.875)" stroke-width="0.895" stroke-opacity="0.866"/>
-            <line vector-effect="non-scaling-stroke" x1="148" y1="12" x2="12" y2="12" stroke="#a76440" style="stroke:oklch(0.57 0.1 48)" stroke-width="1.35" stroke-opacity="0.95"/>
-          </g>
-          <g data-layer="front">
-          <line vector-effect="non-scaling-stroke" x1="12" y1="12" x2="12" y2="218" stroke="#17273c" style="stroke:oklch(0.27 0.045 255)" stroke-width="0.55" stroke-opacity="0.28"/>
-          <line vector-effect="non-scaling-stroke" x1="17.667" y1="12" x2="12" y2="209.417" stroke="#142b3f" style="stroke:oklch(0.283 0.047 246.375)" stroke-width="0.55" stroke-opacity="0.308"/>
-          <line vector-effect="non-scaling-stroke" x1="23.333" y1="12" x2="12" y2="200.833" stroke="#113042" style="stroke:oklch(0.295 0.05 237.75)" stroke-width="0.55" stroke-opacity="0.336"/>
-          <line vector-effect="non-scaling-stroke" x1="29" y1="12" x2="12" y2="192.25" stroke="#0c3445" style="stroke:oklch(0.307 0.052 229.125)" stroke-width="0.55" stroke-opacity="0.364"/>
-          <line vector-effect="non-scaling-stroke" x1="34.667" y1="12" x2="12" y2="183.667" stroke="#073946" style="stroke:oklch(0.32 0.054 220.5)" stroke-width="0.55" stroke-opacity="0.392"/>
-          <line vector-effect="non-scaling-stroke" x1="40.333" y1="12" x2="12" y2="175.083" stroke="#033d47" style="stroke:oklch(0.333 0.056 211.875)" stroke-width="0.55" stroke-opacity="0.42"/>
-          <line vector-effect="non-scaling-stroke" x1="46" y1="12" x2="12" y2="166.5" stroke="#004247" style="stroke:oklch(0.345 0.059 203.25)" stroke-width="0.55" stroke-opacity="0.448"/>
-          <line vector-effect="non-scaling-stroke" x1="51.667" y1="12" x2="12" y2="157.917" stroke="#004646" style="stroke:oklch(0.357 0.061 194.625)" stroke-width="0.55" stroke-opacity="0.475"/>
-          <line vector-effect="non-scaling-stroke" x1="57.333" y1="12" x2="12" y2="149.333" stroke="#044a45" style="stroke:oklch(0.37 0.063 186)" stroke-width="0.55" stroke-opacity="0.503"/>
-          <line vector-effect="non-scaling-stroke" x1="63" y1="12" x2="12" y2="140.75" stroke="#0c4e43" style="stroke:oklch(0.383 0.066 177.375)" stroke-width="0.55" stroke-opacity="0.531"/>
-          <line vector-effect="non-scaling-stroke" x1="68.667" y1="12" x2="12" y2="132.167" stroke="#175240" style="stroke:oklch(0.395 0.068 168.75)" stroke-width="0.55" stroke-opacity="0.559"/>
-          <line vector-effect="non-scaling-stroke" x1="74.333" y1="12" x2="12" y2="123.583" stroke="#21553c" style="stroke:oklch(0.407 0.07 160.125)" stroke-width="0.55" stroke-opacity="0.587"/>
-          <line vector-effect="non-scaling-stroke" x1="80" y1="12" x2="12" y2="115" stroke="#2c5839" style="stroke:oklch(0.42 0.073 151.5)" stroke-width="0.55" stroke-opacity="0.615"/>
-          <line vector-effect="non-scaling-stroke" x1="85.667" y1="12" x2="12" y2="106.417" stroke="#375b34" style="stroke:oklch(0.432 0.075 142.875)" stroke-width="0.55" stroke-opacity="0.643"/>
-          <line vector-effect="non-scaling-stroke" x1="91.333" y1="12" x2="12" y2="97.833" stroke="#425d30" style="stroke:oklch(0.445 0.077 134.25)" stroke-width="0.55" stroke-opacity="0.671"/>
-          <line vector-effect="non-scaling-stroke" x1="97" y1="12" x2="12" y2="89.25" stroke="#4d5f2b" style="stroke:oklch(0.457 0.079 125.625)" stroke-width="0.55" stroke-opacity="0.699"/>
-          <line vector-effect="non-scaling-stroke" x1="102.667" y1="12" x2="12" y2="80.667" stroke="#586127" style="stroke:oklch(0.47 0.082 117)" stroke-width="0.55" stroke-opacity="0.727"/>
-          <line vector-effect="non-scaling-stroke" x1="108.333" y1="12" x2="12" y2="72.083" stroke="#636223" style="stroke:oklch(0.482 0.084 108.375)" stroke-width="0.55" stroke-opacity="0.755"/>
-          <line vector-effect="non-scaling-stroke" x1="114" y1="12" x2="12" y2="63.5" stroke="#6e6320" style="stroke:oklch(0.495 0.086 99.75)" stroke-width="0.55" stroke-opacity="0.782"/>
-          <line vector-effect="non-scaling-stroke" x1="119.667" y1="12" x2="12" y2="54.917" stroke="#786320" style="stroke:oklch(0.507 0.089 91.125)" stroke-width="0.592" stroke-opacity="0.81"/>
-          <line vector-effect="non-scaling-stroke" x1="125.333" y1="12" x2="12" y2="46.333" stroke="#836322" style="stroke:oklch(0.52 0.091 82.5)" stroke-width="0.744" stroke-opacity="0.838"/>
-          <line vector-effect="non-scaling-stroke" x1="131" y1="12" x2="12" y2="37.75" stroke="#8c6326" style="stroke:oklch(0.532 0.093 73.875)" stroke-width="0.895" stroke-opacity="0.866"/>
-          <line vector-effect="non-scaling-stroke" x1="136.667" y1="12" x2="12" y2="29.167" stroke="#96642d" style="stroke:oklch(0.545 0.095 65.25)" stroke-width="1.047" stroke-opacity="0.894"/>
-          <line vector-effect="non-scaling-stroke" x1="142.333" y1="12" x2="12" y2="20.583" stroke="#9f6436" style="stroke:oklch(0.557 0.098 56.625)" stroke-width="1.198" stroke-opacity="0.922"/>
-          <line vector-effect="non-scaling-stroke" x1="148" y1="12" x2="12" y2="12" stroke="#a76440" style="stroke:oklch(0.57 0.1 48)" stroke-width="1.35" stroke-opacity="0.95"/>
-          </g>
-        </g>
-      </svg>
-      <!-- /ORNAMENT:seam -->
+      <!--
+        ORNAMENTS:intro — top-left and bottom-right.
+
+        data-src, not data: the reveal inside each asset starts when the
+        asset loads, so the script defers the load until the corner is on
+        screen. If the script never runs, the noscript block below paints
+        the same corners, just without the staggered entrance — so the two
+        lists must always name the SAME corners.
+      -->
+      <object class="ornament ornament-tl" type="image/svg+xml" data-src="assets/env-line-tl.svg" role="presentation" aria-hidden="true" tabindex="-1"></object>
+      <object class="ornament ornament-br" type="image/svg+xml" data-src="assets/env-line-br.svg" role="presentation" aria-hidden="true" tabindex="-1"></object>
+      <noscript>
+        <object class="ornament ornament-tl" type="image/svg+xml" data="assets/env-line-tl.svg" role="presentation" aria-hidden="true" tabindex="-1"></object>
+        <object class="ornament ornament-br" type="image/svg+xml" data="assets/env-line-br.svg" role="presentation" aria-hidden="true" tabindex="-1"></object>
+      </noscript>
+      <!-- /ORNAMENTS:intro -->
     </section>
 
     <section class="band-dark" aria-labelledby="solarsys-title">
-      <!-- ORNAMENT:dark -->
-      <svg class="ornament ornament-dark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 460" fill="none" role="presentation" aria-hidden="true" focusable="false" shape-rendering="geometricPrecision" data-envelope="env-dark-tr" data-corner="tr" data-n="30">
-        <g fill="none" stroke-linecap="butt" vector-effect="non-scaling-stroke">
-          <g data-layer="back" opacity="0.35" transform="translate(5,7)">
-            <line vector-effect="non-scaling-stroke" x1="546" y1="14" x2="546" y2="432" stroke="#577594" style="stroke:oklch(0.55 0.06 250)" stroke-width="0.55" stroke-opacity="0.28"/>
-            <line vector-effect="non-scaling-stroke" x1="494.4" y1="14" x2="546" y2="390.2" stroke="#5a7f9f" style="stroke:oklch(0.581 0.065 246)" stroke-width="0.55" stroke-opacity="0.347"/>
-            <line vector-effect="non-scaling-stroke" x1="442.8" y1="14" x2="546" y2="348.4" stroke="#5d89ab" style="stroke:oklch(0.612 0.07 242)" stroke-width="0.55" stroke-opacity="0.414"/>
-            <line vector-effect="non-scaling-stroke" x1="391.2" y1="14" x2="546" y2="306.6" stroke="#6094b6" style="stroke:oklch(0.643 0.075 238)" stroke-width="0.55" stroke-opacity="0.481"/>
-            <line vector-effect="non-scaling-stroke" x1="339.6" y1="14" x2="546" y2="264.8" stroke="#639fc0" style="stroke:oklch(0.674 0.08 234)" stroke-width="0.55" stroke-opacity="0.548"/>
-            <line vector-effect="non-scaling-stroke" x1="288" y1="14" x2="546" y2="223" stroke="#65aacb" style="stroke:oklch(0.705 0.085 230)" stroke-width="0.55" stroke-opacity="0.615"/>
-            <line vector-effect="non-scaling-stroke" x1="236.4" y1="14" x2="546" y2="181.2" stroke="#67b5d5" style="stroke:oklch(0.736 0.09 226)" stroke-width="0.55" stroke-opacity="0.682"/>
-            <line vector-effect="non-scaling-stroke" x1="184.8" y1="14" x2="546" y2="139.4" stroke="#68c1df" style="stroke:oklch(0.767 0.095 222)" stroke-width="0.55" stroke-opacity="0.749"/>
-            <line vector-effect="non-scaling-stroke" x1="133.2" y1="14" x2="546" y2="97.6" stroke="#6acde8" style="stroke:oklch(0.798 0.1 218)" stroke-width="0.623" stroke-opacity="0.816"/>
-            <line vector-effect="non-scaling-stroke" x1="81.6" y1="14" x2="546" y2="55.8" stroke="#6cd9f1" style="stroke:oklch(0.829 0.105 214)" stroke-width="0.986" stroke-opacity="0.883"/>
-            <line vector-effect="non-scaling-stroke" x1="30" y1="14" x2="546" y2="14" stroke="#6ee5f9" style="stroke:oklch(0.86 0.11 210)" stroke-width="1.35" stroke-opacity="0.95"/>
-          </g>
-          <g data-layer="front">
-          <line vector-effect="non-scaling-stroke" x1="546" y1="14" x2="546" y2="432" stroke="#577594" style="stroke:oklch(0.55 0.06 250)" stroke-width="0.55" stroke-opacity="0.28"/>
-          <line vector-effect="non-scaling-stroke" x1="528.8" y1="14" x2="546" y2="418.067" stroke="#587898" style="stroke:oklch(0.56 0.062 248.667)" stroke-width="0.55" stroke-opacity="0.302"/>
-          <line vector-effect="non-scaling-stroke" x1="511.6" y1="14" x2="546" y2="404.133" stroke="#597b9b" style="stroke:oklch(0.571 0.063 247.333)" stroke-width="0.55" stroke-opacity="0.325"/>
-          <line vector-effect="non-scaling-stroke" x1="494.4" y1="14" x2="546" y2="390.2" stroke="#5a7f9f" style="stroke:oklch(0.581 0.065 246)" stroke-width="0.55" stroke-opacity="0.347"/>
-          <line vector-effect="non-scaling-stroke" x1="477.2" y1="14" x2="546" y2="376.267" stroke="#5b82a3" style="stroke:oklch(0.591 0.067 244.667)" stroke-width="0.55" stroke-opacity="0.369"/>
-          <line vector-effect="non-scaling-stroke" x1="460" y1="14" x2="546" y2="362.333" stroke="#5c86a7" style="stroke:oklch(0.602 0.068 243.333)" stroke-width="0.55" stroke-opacity="0.392"/>
-          <line vector-effect="non-scaling-stroke" x1="442.8" y1="14" x2="546" y2="348.4" stroke="#5d89ab" style="stroke:oklch(0.612 0.07 242)" stroke-width="0.55" stroke-opacity="0.414"/>
-          <line vector-effect="non-scaling-stroke" x1="425.6" y1="14" x2="546" y2="334.467" stroke="#5e8dae" style="stroke:oklch(0.622 0.072 240.667)" stroke-width="0.55" stroke-opacity="0.436"/>
-          <line vector-effect="non-scaling-stroke" x1="408.4" y1="14" x2="546" y2="320.533" stroke="#5f90b2" style="stroke:oklch(0.633 0.073 239.333)" stroke-width="0.55" stroke-opacity="0.459"/>
-          <line vector-effect="non-scaling-stroke" x1="391.2" y1="14" x2="546" y2="306.6" stroke="#6094b6" style="stroke:oklch(0.643 0.075 238)" stroke-width="0.55" stroke-opacity="0.481"/>
-          <line vector-effect="non-scaling-stroke" x1="374" y1="14" x2="546" y2="292.667" stroke="#6198b9" style="stroke:oklch(0.653 0.077 236.667)" stroke-width="0.55" stroke-opacity="0.503"/>
-          <line vector-effect="non-scaling-stroke" x1="356.8" y1="14" x2="546" y2="278.733" stroke="#629bbd" style="stroke:oklch(0.664 0.078 235.333)" stroke-width="0.55" stroke-opacity="0.526"/>
-          <line vector-effect="non-scaling-stroke" x1="339.6" y1="14" x2="546" y2="264.8" stroke="#639fc0" style="stroke:oklch(0.674 0.08 234)" stroke-width="0.55" stroke-opacity="0.548"/>
-          <line vector-effect="non-scaling-stroke" x1="322.4" y1="14" x2="546" y2="250.867" stroke="#63a3c4" style="stroke:oklch(0.684 0.082 232.667)" stroke-width="0.55" stroke-opacity="0.57"/>
-          <line vector-effect="non-scaling-stroke" x1="305.2" y1="14" x2="546" y2="236.933" stroke="#64a6c7" style="stroke:oklch(0.695 0.083 231.333)" stroke-width="0.55" stroke-opacity="0.593"/>
-          <line vector-effect="non-scaling-stroke" x1="288" y1="14" x2="546" y2="223" stroke="#65aacb" style="stroke:oklch(0.705 0.085 230)" stroke-width="0.55" stroke-opacity="0.615"/>
-          <line vector-effect="non-scaling-stroke" x1="270.8" y1="14" x2="546" y2="209.067" stroke="#65aece" style="stroke:oklch(0.715 0.087 228.667)" stroke-width="0.55" stroke-opacity="0.637"/>
-          <line vector-effect="non-scaling-stroke" x1="253.6" y1="14" x2="546" y2="195.133" stroke="#66b2d2" style="stroke:oklch(0.726 0.088 227.333)" stroke-width="0.55" stroke-opacity="0.66"/>
-          <line vector-effect="non-scaling-stroke" x1="236.4" y1="14" x2="546" y2="181.2" stroke="#67b5d5" style="stroke:oklch(0.736 0.09 226)" stroke-width="0.55" stroke-opacity="0.682"/>
-          <line vector-effect="non-scaling-stroke" x1="219.2" y1="14" x2="546" y2="167.267" stroke="#67b9d8" style="stroke:oklch(0.746 0.092 224.667)" stroke-width="0.55" stroke-opacity="0.704"/>
-          <line vector-effect="non-scaling-stroke" x1="202" y1="14" x2="546" y2="153.333" stroke="#68bddb" style="stroke:oklch(0.757 0.093 223.333)" stroke-width="0.55" stroke-opacity="0.727"/>
-          <line vector-effect="non-scaling-stroke" x1="184.8" y1="14" x2="546" y2="139.4" stroke="#68c1df" style="stroke:oklch(0.767 0.095 222)" stroke-width="0.55" stroke-opacity="0.749"/>
-          <line vector-effect="non-scaling-stroke" x1="167.6" y1="14" x2="546" y2="125.467" stroke="#69c5e2" style="stroke:oklch(0.777 0.097 220.667)" stroke-width="0.55" stroke-opacity="0.771"/>
-          <line vector-effect="non-scaling-stroke" x1="150.4" y1="14" x2="546" y2="111.533" stroke="#69c9e5" style="stroke:oklch(0.788 0.098 219.333)" stroke-width="0.55" stroke-opacity="0.794"/>
-          <line vector-effect="non-scaling-stroke" x1="133.2" y1="14" x2="546" y2="97.6" stroke="#6acde8" style="stroke:oklch(0.798 0.1 218)" stroke-width="0.623" stroke-opacity="0.816"/>
-          <line vector-effect="non-scaling-stroke" x1="116" y1="14" x2="546" y2="83.667" stroke="#6bd1eb" style="stroke:oklch(0.808 0.102 216.667)" stroke-width="0.744" stroke-opacity="0.838"/>
-          <line vector-effect="non-scaling-stroke" x1="98.8" y1="14" x2="546" y2="69.733" stroke="#6bd5ee" style="stroke:oklch(0.819 0.103 215.333)" stroke-width="0.865" stroke-opacity="0.861"/>
-          <line vector-effect="non-scaling-stroke" x1="81.6" y1="14" x2="546" y2="55.8" stroke="#6cd9f1" style="stroke:oklch(0.829 0.105 214)" stroke-width="0.986" stroke-opacity="0.883"/>
-          <line vector-effect="non-scaling-stroke" x1="64.4" y1="14" x2="546" y2="41.867" stroke="#6dddf3" style="stroke:oklch(0.839 0.107 212.667)" stroke-width="1.108" stroke-opacity="0.905"/>
-          <line vector-effect="non-scaling-stroke" x1="47.2" y1="14" x2="546" y2="27.933" stroke="#6de1f6" style="stroke:oklch(0.85 0.108 211.333)" stroke-width="1.229" stroke-opacity="0.928"/>
-          <line vector-effect="non-scaling-stroke" x1="30" y1="14" x2="546" y2="14" stroke="#6ee5f9" style="stroke:oklch(0.86 0.11 210)" stroke-width="1.35" stroke-opacity="0.95"/>
-          </g>
-        </g>
-      </svg>
-      <!-- /ORNAMENT:dark -->
+      <!-- ORNAMENTS:dark — top-right and bottom-left, band palette via CSS filter -->
+      <object class="ornament ornament-tr" type="image/svg+xml" data-src="assets/env-line-tr.svg" role="presentation" aria-hidden="true" tabindex="-1"></object>
+      <object class="ornament ornament-bl" type="image/svg+xml" data-src="assets/env-line-bl.svg" role="presentation" aria-hidden="true" tabindex="-1"></object>
+      <noscript>
+        <object class="ornament ornament-tr" type="image/svg+xml" data="assets/env-line-tr.svg" role="presentation" aria-hidden="true" tabindex="-1"></object>
+        <object class="ornament ornament-bl" type="image/svg+xml" data="assets/env-line-bl.svg" role="presentation" aria-hidden="true" tabindex="-1"></object>
+      </noscript>
+      <!-- /ORNAMENTS:dark -->
       <div class="column">
         <p class="section-label">02 / Generative SVG — deterministic</p>
         <h2 id="solarsys-title">SolarSys</h2>
@@ -692,7 +450,15 @@
     </section>
   </main>
 
-  <footer>
+  <footer class="band-paper">
+    <!--
+      ORNAMENTS:footer — top-left only.
+    -->
+    <object class="ornament ornament-tl" type="image/svg+xml" data-src="assets/env-line-tl.svg" role="presentation" aria-hidden="true" tabindex="-1"></object>
+    <noscript>
+      <object class="ornament ornament-tl" type="image/svg+xml" data="assets/env-line-tl.svg" role="presentation" aria-hidden="true" tabindex="-1"></object>
+    </noscript>
+    <!-- /ORNAMENTS:intro -->
     <nav aria-label="External links">
       <a href="https://github.com/lramos1994" target="_blank" rel="noopener">github.com/lramos1994</a>
       <a href="https://linkedin.com/in/lramos-dev" target="_blank" rel="noopener">linkedin.com/in/lramos-dev</a>
@@ -749,172 +515,65 @@
     })();
 
     /* ------------------------------------------------------------------
-       Ornament stroke reveal — one shot per ornament, then gone.
+       Ornament reveal — deferred load, and nothing else.
 
-       The resting state of an ornament is a FINISHED ornament: no
-       dasharray in the stylesheet, nothing inline. Everything below is a
-       temporary deviation from that resting state, and every exit path
-       (finished, interrupted, preference changed, resized mid-flight)
-       lands back on it by deleting what it added. If this whole block
-       throws or never runs, the page is still correct.
+       This block does NOT animate anything. Each ornament asset owns its
+       own reveal in its own <style>, and that reveal starts when the file
+       loads. So the only thing left for the page to decide is WHEN each
+       file starts loading, which is what this does: the <object> ships
+       with data-src instead of data, and the src is promoted to data the
+       first time the ornament scrolls into view.
 
-       Consequences worth stating, because they are the acceptance
-       criteria:
-       - prefers-reduced-motion: reduce returns before a single property is
-         written, so there is no dasharray to animate and no observer to
-         leave running.
-       - unobserve() happens as the first statement after an intersection,
-         before any work, so a re-entering ornament cannot fire twice. Once
-         every ornament has fired, the observer holds no targets.
-       - When the last line lands, the transition and the inline properties
-         are removed. Nothing observes and nothing animates afterwards. This
-         is not a loop and must never become one.
+       Why it is built this way, and not as a script that reaches into the
+       drawing: an <object>-loaded SVG is a separate document. Over
+       file:// Chrome gives it an opaque origin and contentDocument comes
+       back null, so a script-driven reveal silently did nothing whenever
+       the page was opened straight from disk. Nothing here touches the
+       inner document, so nothing here can break that way.
+
+       Failure modes, all of them benign:
+       - No JS: each section's <noscript> block ships the same corners
+         with a plain data attribute. They paint, all at once, no stagger.
+       - No IntersectionObserver: every ornament loads immediately.
+       - prefers-reduced-motion: the assets' own @media rule pins them to
+         the finished state; loading them early changes nothing.
        ------------------------------------------------------------------ */
     (() => {
       const ornaments = Array.prototype.slice.call(
-        document.querySelectorAll('.ornament')
+        document.querySelectorAll('object.ornament[data-src]')
       );
       if (!ornaments.length) return;
 
-      // No IntersectionObserver (or no matchMedia) means we cannot know when
-      // to start, so we never start: the ornaments are already complete.
-      if (typeof window.IntersectionObserver !== 'function') return;
-      if (typeof window.matchMedia !== 'function') return;
-
-      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-      // Read once, and read it BEFORE touching anything. A user who asked for
-      // less motion gets an untouched document, not a fast animation.
-      if (reducedMotion.matches) return;
-
-      const DURATION_MS = 900;
-      const STAGGER_MS = 12;
-      // The dash is cut in SCREEN pixels (vector-effect: non-scaling-stroke),
-      // so a length in user units has to be scaled by the ornament's own
-      // rendered scale before it means anything.
-      const scaleOf = (svg) => {
-        const box = svg.viewBox && svg.viewBox.baseVal;
-        const width = svg.getBoundingClientRect().width;
-        if (!box || !box.width || !width) return 0;
-        return width / box.width;
+      const load = (object) => {
+        const src = object.getAttribute('data-src');
+        // Promote once. removeAttribute first so a second call is a no-op
+        // even if an observer somehow fires twice.
+        if (!src) return;
+        object.removeAttribute('data-src');
+        object.setAttribute('data', src);
       };
 
-      const live = new Map();
-
-      // The single exit. Idempotent on purpose: the transitionend path and
-      // the timeout path both call it, and whichever loses does nothing.
-      const settle = (svg) => {
-        if (!live.has(svg)) return;
-        const timer = live.get(svg);
-        live.delete(svg);
-        if (timer) clearTimeout(timer);
-        svg.classList.remove('is-revealing');
-        // Back to the resting state. Leaving the dasharray behind would mean
-        // a later resize re-cuts a pattern measured for the old size and
-        // chews visible gaps into a finished drawing.
-        const lines = svg.querySelectorAll('line');
-        for (let i = 0; i < lines.length; i++) {
-          const line = lines[i];
-          line.style.removeProperty('stroke-dasharray');
-          line.style.removeProperty('stroke-dashoffset');
-          line.style.removeProperty('--reveal-delay');
-        }
-        if (!live.size) window.removeEventListener('resize', onResize);
-      };
-
-      // A resize mid-flight invalidates every dash length currently in the
-      // air, since they were cut in screen pixels for the old size. Snapping
-      // to the finished state is the honest answer; re-measuring would
-      // restart motion the user did not ask for.
-      function onResize() {
-        const inflight = Array.prototype.slice.call(live.keys());
-        for (let i = 0; i < inflight.length; i++) settle(inflight[i]);
+      // No observer means no way to know when a corner is visible, so the
+      // honest fallback is to show all of them rather than none.
+      if (typeof window.IntersectionObserver !== 'function') {
+        for (let i = 0; i < ornaments.length; i++) load(ornaments[i]);
+        return;
       }
-
-      const start = (svg) => {
-        const scale = scaleOf(svg);
-        // Hidden (display:none below its breakpoint) or not laid out yet.
-        // Nothing to reveal; leave it complete.
-        if (!scale) return;
-
-        const lines = svg.querySelectorAll('line');
-        if (!lines.length) return;
-
-        // Phase 1: measure everything, write nothing. Interleaving reads and
-        // writes here would be a forced layout per line, which is exactly the
-        // scroll jank this reveal is not allowed to cause.
-        const lengths = new Array(lines.length);
-        for (let i = 0; i < lines.length; i++) {
-          const length = lines[i].getTotalLength() * scale;
-          lengths[i] = length > 0 ? length : 0;
-        }
-
-        // Phase 2: write the hidden state, still with no transition attached,
-        // so nothing can animate from an undefined starting point.
-        for (let i = 0; i < lines.length; i++) {
-          if (!lengths[i]) continue;
-          const line = lines[i];
-          line.style.setProperty('stroke-dasharray', lengths[i] + 'px');
-          line.style.setProperty('stroke-dashoffset', lengths[i] + 'px');
-          line.style.setProperty('--reveal-delay', i * STAGGER_MS + 'ms');
-        }
-
-        // Force the hidden state to be flushed to style BEFORE the transition
-        // is armed. Without this the engine is free to coalesce "hidden" and
-        // "shown" into no change at all and skip the animation entirely.
-        // Measured, and the reason this line exists: with a bare
-        // requestAnimationFrame and no flush, Firefox silently skipped the
-        // third ornament — 0 transitions on env-dark-tr while Chromium and
-        // WebKit played all three. One forced read per ornament, three per
-        // page load, never per line.
-        if (lengths.some(Boolean)) getComputedStyle(lines[0]).strokeDashoffset;
-
-        const total = DURATION_MS + (lines.length - 1) * STAGGER_MS;
-        live.set(svg, null);
-        if (live.size === 1) window.addEventListener('resize', onResize);
-
-        // Phase 3: next frame, arm the transition and release the offset.
-        // Separate frames matter: set in the same frame, the browser
-        // coalesces hidden and shown into no visible change at all.
-        requestAnimationFrame(() => {
-          if (!live.has(svg)) return;
-          svg.classList.add('is-revealing');
-          const revealing = svg.querySelectorAll('line');
-          for (let i = 0; i < revealing.length; i++) {
-            revealing[i].style.setProperty('stroke-dashoffset', '0px');
-          }
-          // The only timer in the block, and it exists to END motion. A
-          // generous margin over the computed total, because a missed
-          // transitionend must not strand inline styles on the drawing.
-          live.set(svg, setTimeout(() => settle(svg), total + 400));
-        });
-      };
 
       const observer = new IntersectionObserver((entries) => {
         for (let i = 0; i < entries.length; i++) {
           const entry = entries[i];
           if (!entry.isIntersecting) continue;
-          // FIRST, before any work: this ornament is spent. Everything after
-          // this line is allowed to fail without causing a second reveal.
+          // Unobserve FIRST: this ornament is spent, and everything after
+          // this line is allowed to fail without re-triggering it.
           observer.unobserve(entry.target);
-          start(entry.target);
+          load(entry.target);
         }
       }, { threshold: 0.15, rootMargin: '0px 0px -5% 0px' });
 
       for (let i = 0; i < ornaments.length; i++) {
         observer.observe(ornaments[i]);
       }
-
-      // The last ornament to finish takes the observer down with it, so the
-      // page ends with nothing observing and nothing animating.
-      document.addEventListener('transitionend', (event) => {
-        if (event.propertyName !== 'stroke-dashoffset') return;
-        const svg = event.target.ownerSVGElement;
-        if (!svg || !live.has(svg)) return;
-        const lines = svg.querySelectorAll('line');
-        // Longest delay wins: when the last line lands, the ornament is done.
-        if (event.target !== lines[lines.length - 1]) return;
-        settle(svg);
-      });
     })();
   </script>
 </body>
