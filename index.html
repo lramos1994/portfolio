@@ -218,12 +218,27 @@
        An earlier revision switched at 641px instead, and the two properties
        collided in the gap: between 641 and 724px the lifted figure painted
        over the mono stack line (measured: 491 ink px at 641, decaying to 9
-       at 720). The lift itself cannot simply be dropped, because it is what
-       keeps this vertex and the dark band's from landing ~12px apart across
-       the seam and reading as one mirrored bowtie. Both are the same knob
-       on the same axis: the fix is to switch the composition where the
-       LAYOUT changes, not at a round number. Verified over every integer
-       width from 320 to 1920. */
+       at 720). Moving the switch to 736px shrank that collision but did not
+       close it: at 736px the gutter is still exactly zero, so a lifted
+       figure of the old 220px width still reached 13px into the stack line,
+       and the band 736-765px stayed dirty.
+
+       The breakpoint is not the free parameter here. 736px is where the
+       dark band's ornament starts rendering, and the lift exists only to
+       stop this vertex and that one from landing together and reading as
+       one mirrored bowtie across the seam; deferring the lift past 736px
+       collapses the measured vertex separation from 84px to 10px and simply
+       trades this defect for that one. Both must switch on the same width.
+
+       So the free parameter is the WIDTH of the lifted figure, and the
+       binding case is 736px itself, where the column fills the viewport and
+       there is no gutter to pay for it. Measured at 736px, the horizontal
+       gap between this figure's ink and the stack line's line box falls
+       about 0.96px per 1px of figure width and reaches zero at ~206px.
+       180px sits 25px inside that limit, which is wider than the 1.5px the
+       line moves when the webfont fails to load and the fallback mono is
+       used. Above 736px the gutter opens at 0.5px per 1px of viewport, so
+       the margin only ever grows. */
     .ornament-intro {
       right: 0;
       bottom: 0;
@@ -242,7 +257,7 @@
 
     @media (min-width: 736px) {
       .ornament-intro {
-        width: 220px;
+        width: 180px;
         bottom: 4.5rem;
       }
     }
