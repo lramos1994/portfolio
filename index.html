@@ -164,6 +164,48 @@
       -webkit-user-select: none;
     }
 
+    /* The stroke reveal.
+
+       The default state carries NO stroke-dasharray. That is deliberate and
+       it is what makes reduced motion, unsupported JS, and the post-reveal
+       resting state all correct for free: an untouched ornament is simply a
+       finished ornament. Only the script paints the dash on, and only for
+       the ~1.3s the reveal lasts.
+
+       It has to work that way. These lines use vector-effect:
+       non-scaling-stroke, and that puts dash geometry in SCREEN pixels while
+       the coordinates stay in user units. Measured in Chromium, WebKit and
+       Firefox: a line 200 user units long, rendered 50px wide, with
+       stroke-dasharray:200 and stroke-dashoffset:150, paints in FULL in all
+       three — the offset is being read as 150 screen px against a 50px line,
+       not as three quarters of the geometry. pathLength="1" does not fix it
+       either; the normalization is applied and the result is still consumed
+       in screen space, so dasharray:1 behaves identically. So a dash length
+       written in CSS would be wrong at every width step (150 / 220 / 300 /
+       440px) and wrong again after any resize. The script measures each
+       line's rendered length instead, and strips the properties when the
+       reveal finishes so a later resize cannot open gaps in a pattern that
+       was cut for the old size.
+
+       One shot, no loop. The SolarSys scene stays the only continuous motion
+       on the page. */
+    .ornament.is-revealing line {
+      transition: stroke-dashoffset 0.9s cubic-bezier(0.22, 0.61, 0.36, 1);
+      transition-delay: var(--reveal-delay, 0ms);
+    }
+
+    /* Belt and braces. The script already refuses to instrument anything
+       when reduce is set, so these ornaments never get a dasharray at all
+       and there is nothing here to neutralize. This rule exists for the one
+       case the script cannot catch: the preference flipped to reduce while a
+       reveal is mid-flight. */
+    @media (prefers-reduced-motion: reduce) {
+      .ornament.is-revealing line {
+        transition: none;
+        stroke-dashoffset: 0;
+      }
+    }
+
     /* bottom-right of the paper band: it anchors the eye at the end of
        the intro without competing with the name.
 
@@ -689,6 +731,175 @@
       } else if (typeof reducedMotion.addListener === 'function') {
         reducedMotion.addListener(updateForPreference);
       }
+    })();
+
+    /* ------------------------------------------------------------------
+       Ornament stroke reveal — one shot per ornament, then gone.
+
+       The resting state of an ornament is a FINISHED ornament: no
+       dasharray in the stylesheet, nothing inline. Everything below is a
+       temporary deviation from that resting state, and every exit path
+       (finished, interrupted, preference changed, resized mid-flight)
+       lands back on it by deleting what it added. If this whole block
+       throws or never runs, the page is still correct.
+
+       Consequences worth stating, because they are the acceptance
+       criteria:
+       - prefers-reduced-motion: reduce returns before a single property is
+         written, so there is no dasharray to animate and no observer to
+         leave running.
+       - unobserve() happens as the first statement after an intersection,
+         before any work, so a re-entering ornament cannot fire twice. Once
+         every ornament has fired, the observer holds no targets.
+       - When the last line lands, the transition and the inline properties
+         are removed. Nothing observes and nothing animates afterwards. This
+         is not a loop and must never become one.
+       ------------------------------------------------------------------ */
+    (() => {
+      const ornaments = Array.prototype.slice.call(
+        document.querySelectorAll('.ornament')
+      );
+      if (!ornaments.length) return;
+
+      // No IntersectionObserver (or no matchMedia) means we cannot know when
+      // to start, so we never start: the ornaments are already complete.
+      if (typeof window.IntersectionObserver !== 'function') return;
+      if (typeof window.matchMedia !== 'function') return;
+
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+      // Read once, and read it BEFORE touching anything. A user who asked for
+      // less motion gets an untouched document, not a fast animation.
+      if (reducedMotion.matches) return;
+
+      const DURATION_MS = 900;
+      const STAGGER_MS = 12;
+      // The dash is cut in SCREEN pixels (vector-effect: non-scaling-stroke),
+      // so a length in user units has to be scaled by the ornament's own
+      // rendered scale before it means anything.
+      const scaleOf = (svg) => {
+        const box = svg.viewBox && svg.viewBox.baseVal;
+        const width = svg.getBoundingClientRect().width;
+        if (!box || !box.width || !width) return 0;
+        return width / box.width;
+      };
+
+      const live = new Map();
+
+      // The single exit. Idempotent on purpose: the transitionend path and
+      // the timeout path both call it, and whichever loses does nothing.
+      const settle = (svg) => {
+        if (!live.has(svg)) return;
+        const timer = live.get(svg);
+        live.delete(svg);
+        if (timer) clearTimeout(timer);
+        svg.classList.remove('is-revealing');
+        // Back to the resting state. Leaving the dasharray behind would mean
+        // a later resize re-cuts a pattern measured for the old size and
+        // chews visible gaps into a finished drawing.
+        const lines = svg.querySelectorAll('line');
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i];
+          line.style.removeProperty('stroke-dasharray');
+          line.style.removeProperty('stroke-dashoffset');
+          line.style.removeProperty('--reveal-delay');
+        }
+        if (!live.size) window.removeEventListener('resize', onResize);
+      };
+
+      // A resize mid-flight invalidates every dash length currently in the
+      // air, since they were cut in screen pixels for the old size. Snapping
+      // to the finished state is the honest answer; re-measuring would
+      // restart motion the user did not ask for.
+      function onResize() {
+        const inflight = Array.prototype.slice.call(live.keys());
+        for (let i = 0; i < inflight.length; i++) settle(inflight[i]);
+      }
+
+      const start = (svg) => {
+        const scale = scaleOf(svg);
+        // Hidden (display:none below its breakpoint) or not laid out yet.
+        // Nothing to reveal; leave it complete.
+        if (!scale) return;
+
+        const lines = svg.querySelectorAll('line');
+        if (!lines.length) return;
+
+        // Phase 1: measure everything, write nothing. Interleaving reads and
+        // writes here would be a forced layout per line, which is exactly the
+        // scroll jank this reveal is not allowed to cause.
+        const lengths = new Array(lines.length);
+        for (let i = 0; i < lines.length; i++) {
+          const length = lines[i].getTotalLength() * scale;
+          lengths[i] = length > 0 ? length : 0;
+        }
+
+        // Phase 2: write the hidden state, still with no transition attached,
+        // so nothing can animate from an undefined starting point.
+        for (let i = 0; i < lines.length; i++) {
+          if (!lengths[i]) continue;
+          const line = lines[i];
+          line.style.setProperty('stroke-dasharray', lengths[i] + 'px');
+          line.style.setProperty('stroke-dashoffset', lengths[i] + 'px');
+          line.style.setProperty('--reveal-delay', i * STAGGER_MS + 'ms');
+        }
+
+        // Force the hidden state to be flushed to style BEFORE the transition
+        // is armed. Without this the engine is free to coalesce "hidden" and
+        // "shown" into no change at all and skip the animation entirely.
+        // Measured, and the reason this line exists: with a bare
+        // requestAnimationFrame and no flush, Firefox silently skipped the
+        // third ornament — 0 transitions on env-dark-tr while Chromium and
+        // WebKit played all three. One forced read per ornament, three per
+        // page load, never per line.
+        if (lengths.some(Boolean)) getComputedStyle(lines[0]).strokeDashoffset;
+
+        const total = DURATION_MS + (lines.length - 1) * STAGGER_MS;
+        live.set(svg, null);
+        if (live.size === 1) window.addEventListener('resize', onResize);
+
+        // Phase 3: next frame, arm the transition and release the offset.
+        // Separate frames matter: set in the same frame, the browser
+        // coalesces hidden and shown into no visible change at all.
+        requestAnimationFrame(() => {
+          if (!live.has(svg)) return;
+          svg.classList.add('is-revealing');
+          const revealing = svg.querySelectorAll('line');
+          for (let i = 0; i < revealing.length; i++) {
+            revealing[i].style.setProperty('stroke-dashoffset', '0px');
+          }
+          // The only timer in the block, and it exists to END motion. A
+          // generous margin over the computed total, because a missed
+          // transitionend must not strand inline styles on the drawing.
+          live.set(svg, setTimeout(() => settle(svg), total + 400));
+        });
+      };
+
+      const observer = new IntersectionObserver((entries) => {
+        for (let i = 0; i < entries.length; i++) {
+          const entry = entries[i];
+          if (!entry.isIntersecting) continue;
+          // FIRST, before any work: this ornament is spent. Everything after
+          // this line is allowed to fail without causing a second reveal.
+          observer.unobserve(entry.target);
+          start(entry.target);
+        }
+      }, { threshold: 0.15, rootMargin: '0px 0px -5% 0px' });
+
+      for (let i = 0; i < ornaments.length; i++) {
+        observer.observe(ornaments[i]);
+      }
+
+      // The last ornament to finish takes the observer down with it, so the
+      // page ends with nothing observing and nothing animating.
+      document.addEventListener('transitionend', (event) => {
+        if (event.propertyName !== 'stroke-dashoffset') return;
+        const svg = event.target.ownerSVGElement;
+        if (!svg || !live.has(svg)) return;
+        const lines = svg.querySelectorAll('line');
+        // Longest delay wins: when the last line lands, the ornament is done.
+        if (event.target !== lines[lines.length - 1]) return;
+        settle(svg);
+      });
     })();
   </script>
 </body>
